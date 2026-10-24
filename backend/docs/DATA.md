@@ -1,6 +1,6 @@
 # Maasinga web data
 
-These 19 files are all the data the Maasinga dashboard and API use. All live in `data/out`. The dashboard uses the first 12 and the harbour timelines; the others were made for apps and are served only by the API. Together they are about 13 MB.
+These 20 files are all the data the Maasinga dashboard and API use. All live in `data/out`. The dashboard uses the first 12 and the harbour timelines; the others were made for apps and are served only by the API. Together they are about 13 MB.
 The pipeline (`pipeline/`) built them from the sources below, and `api/seed.py` loads them into PostgreSQL (tables in `api/schema.sql`). The raw GPS (1.8 GB)
 is never loaded by the site.
 
@@ -113,6 +113,10 @@ API: `model.check` in `/predict/*`.
 ### harbour-timelines.json (1.5 MB): one timeline per North Harbour boat
 Page: Harbour (boat timeline). API: `/harbour/boats/{code}/timeline`.
 - Per boat code: `km` (distance from Male every 30 minutes, null = no GPS), `stops`, `trips` (out of the Male area and back) and `projection` (next trip from the boat's median cycle). See `pipeline/13_harbour_timeline.py`.
+
+### bus.json (43 KB): bus passengers (API only, SAMPLE data)
+API: `/bus-ridership`.
+- From the organiser's MTCC file (`pipeline/14_bus.py`). `monthly` as `[month, route, paid, free of charge, total]` (Jan 2023 to Dec 2025, R1, R2, R3, R4, R7) and `daily` as `[date, route, paid, free of charge, total]` (2025, R1, R2, R4). The file's notes say every passenger figure is randomly generated.
 
 ## Limits
 - One month of boat data (August 2025, southwest monsoon).

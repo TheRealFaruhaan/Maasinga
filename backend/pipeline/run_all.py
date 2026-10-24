@@ -19,6 +19,7 @@ STEPS = [
     "11_app_data.py",
     "12_predict.py",
     "13_harbour_timeline.py",
+    "14_bus.py",
 ]
 
 sys.path.insert(0, str(HERE))
@@ -26,7 +27,8 @@ from common import RAW  # noqa: E402
 
 # The taxi step needs the Avas and MACL files; the dashboard does not use its output, so skip it if they are missing.
 OPTIONAL = {"09_taxi.py": [RAW / "Avas_Ride" / "avas_rides_aug_sep_2026.csv", RAW / "MACL" / "MACL" / "Airport traffic_Dataset_27092026.csv"],
-            "10_boat_names.py": [RAW / "imei_name_guess_all.csv"]}
+            "10_boat_names.py": [RAW / "imei_name_guess_all.csv"],
+            "14_bus.py": [RAW / "MTCC" / "MTCC.xlsx"]}
 
 for step in STEPS:
     print(f"\n== {step}")

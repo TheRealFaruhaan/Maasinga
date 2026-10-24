@@ -22,10 +22,10 @@ Live copy: dashboard https://maasinga.devoup.com, API https://maasinga-api.devou
 ```
 FollowMe boat GPS (organiser) + team weather export (ERA5, NASA IMERG) + Census 2022 + OpenStreetMap
         |
-   pipeline/    Python + DuckDB. Turns 1.8 GB of raw GPS into 19 small data files.
-        |        The 19 files are committed in data/out, so you do NOT need this step to run the app.
+   pipeline/    Python + DuckDB. Turns 1.8 GB of raw GPS into 20 small data files.
+        |        The 20 files are committed in data/out, so you do NOT need this step to run the app.
         v
-   api/         seed.py loads the 19 files into PostgreSQL (tables: api/schema.sql).
+   api/         seed.py loads the 20 files into PostgreSQL (tables: api/schema.sql).
         |        FastAPI serves them. Interactive docs at /docs.
         v
    dashboard/   Next.js dashboard behind a login. Reads everything from the API.
@@ -34,12 +34,12 @@ FollowMe boat GPS (organiser) + team weather export (ERA5, NASA IMERG) + Census 
 
 | Folder | What it is |
 |---|---|
-| `pipeline/` | Data processing scripts (step 01 to 13) and public reference data (`pipeline/reference/`) |
+| `pipeline/` | Data processing scripts (step 01 to 14) and public reference data (`pipeline/reference/`) |
 | `api/` | FastAPI app, database schema, seed script, Dockerfile, `.env.example` |
 | `dashboard/` | Next.js dashboard, its Dockerfile and `.env.example` |
 | `deploy/` | Docker Compose files, `.env.example`, Traefik route example |
 | `docs/` | This guide, `DATA.md` (every data file, field by field) and `API.md` (every endpoint, logins) |
-| `data/` | `data/out`: the 19 processed data files (in git). `data/raw`, `data/work`: organiser data and working files (not in git; only for section 5) |
+| `data/` | `data/out`: the 20 processed data files (in git). `data/raw`, `data/work`: organiser data and working files (not in git; only for section 5) |
 
 ## 2. Quick start with Docker (recommended)
 
@@ -72,7 +72,7 @@ The first build takes 3 to 6 minutes. It starts four services:
 | Service | What it does | Address |
 |---|---|---|
 | `db` | PostgreSQL 16; data kept in the Docker volume `pgdata` | inside Docker only |
-| `seed` | Loads the 19 data files into the database, then stops | - |
+| `seed` | Loads the 20 data files into the database, then stops | - |
 | `api` | Maasinga API | http://localhost:8000 (docs: http://localhost:8000/docs) |
 | `dashboard` | Maasinga dashboard | http://localhost:3000 |
 
@@ -229,7 +229,7 @@ python3 -m venv .venv
 .venv/bin/python pipeline/run_all.py                # about 20 seconds
 ```
 
-This writes the 19 files to `data/out` and the per-boat harbour table (with real tracker IDs,
+This writes the 20 files to `data/out` and the per-boat harbour table (with real tracker IDs,
 not shared) to `data/work/`. Logins are kept: they live in the database, not in these files. Then reload the database: `docker compose run --rm seed && docker compose restart api`
 (Docker) or `api/.venv/bin/python api/seed.py` and restart the API (no Docker).
 

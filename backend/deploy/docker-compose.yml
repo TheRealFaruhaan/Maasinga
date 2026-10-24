@@ -16,7 +16,7 @@ services:
       interval: 5s
       retries: 20
 
-  # Loads the 19 data files from data/out into Postgres, then exits.
+  # Loads the 20 data files from data/out into Postgres, then exits.
   seed:
     build: ../api
     command: ["python", "seed.py", "/data"]

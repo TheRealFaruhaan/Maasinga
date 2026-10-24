@@ -46,5 +46,7 @@ Files: pipeline/reference/weather/<region>.json, built by pipeline/02_weather.py
 - `web_islands.csv`: the team web app's island list (`web/src/data/islands.json`) matched to the census islands by atoll and name (spelling-proof key, then fuzzy match); gives each island its web app id and Dhivehi name. 187 of 195 matched; the 8 others are not in the census island list.
 - Boat names, kinds and operators (`data/out/boat-names.json`, `boats.json`): the team's best guesses per tracker (`data/raw/imei_name_guess_all.csv`, not in git because it holds tracker IDs). Demo only, not a vessel register.
 - Transport apps (`api/apps.json`, icons in `api/static/apps/`): the team's list of taxi apps and RTL Travel, with links from the official App Store and Google Play listings and public hotlines (Male Taxi 1655, MTCC 1650). October 2026.
+- Airport taxi fares and hotlines (`api/info.json`): fixed fares from maldivesairport.com/transport/taxi-bus and public emergency and transport numbers, as listed in the team's web app. October 2026.
+- Bus routes (`api/info.json`): the team web app's list (maldivesairport.com, mtcc.mv, see.mv, raajje.mv; October 2026) plus R7 from the organiser's MTCC file.
 - Quick contacts (`data/out/contacts.json`): demo data made by `pipeline/11_app_data.py`; placeholder numbers only.
 

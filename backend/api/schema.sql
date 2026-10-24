@@ -342,3 +342,49 @@ CREATE TABLE harbour_timelines (
   code text PRIMARY KEY,
   data jsonb NOT NULL                 -- {t0, step_min, km[], stops[], trips[], projection}
 );
+
+-- Fixed taxi fares from Velana Airport, from api/info.json (airport website, via the team's web app).
+CREATE TABLE airport_taxi_fares (
+  to_en    text NOT NULL,
+  to_dv    text,
+  place_id text,
+  car_mvr  integer NOT NULL,           -- standard car (under 6 seats)
+  van_mvr  integer NOT NULL,           -- 7 to 10 seats
+  ord      integer NOT NULL
+);
+
+-- Emergency and transport hotlines, from api/info.json.
+CREATE TABLE hotlines (
+  id       text PRIMARY KEY,
+  category text NOT NULL,             -- emergency | transport
+  number   text NOT NULL,
+  name_en  text NOT NULL,
+  name_dv  text,
+  ord      integer NOT NULL
+);
+
+-- Greater Male bus routes, from api/info.json (the team web app's list, plus R7 from the MTCC file).
+CREATE TABLE bus_routes (
+  code      text PRIMARY KEY,
+  from_en   text NOT NULL,
+  from_dv   text,
+  to_en     text NOT NULL,
+  to_dv     text,
+  fare_mvr  integer,
+  every_min integer,
+  hours     text,
+  color     text,
+  ord       integer NOT NULL
+);
+
+-- Bus passengers per route from the organiser's MTCC file (pipeline step 14). SAMPLE data: the file says every
+-- passenger figure is randomly generated.
+CREATE TABLE bus_ridership (
+  period    text NOT NULL,            -- month | day
+  at        text NOT NULL,            -- "YYYY-MM" or "YYYY-MM-DD"
+  route     text NOT NULL,
+  paid      integer NOT NULL,
+  foc       integer NOT NULL,         -- free of charge: over 65, people with disabilities, infants
+  total     integer NOT NULL,
+  PRIMARY KEY (period, at, route)
+);

@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY schema.sql auth.sql seed.py users.py apps.json ./
+COPY schema.sql auth.sql seed.py users.py apps.json info.json ./
 COPY static ./static
 COPY app ./app
 

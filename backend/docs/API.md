@@ -16,7 +16,7 @@ Use this file as the reference for any app that reads the API (including AI codi
 
 | Who | Routes |
 |---|---|
-| **Public** (no login) | `/health`, `/apps`, `/static/apps/*`, `/places`, `/places/{id}`, `/places/{id}/schedule`, `/places/{id}/contacts`, `/predict/routes/{from}/{to}`, `/predict/places/{id}`, `/routes`, `/routes/{from}/{to}`, `/weather`, `/weather/{region}/{date}`, `/forecast`, `/map/land`, `/map/reefs`, `POST /auth/login` |
+| **Public** (no login) | `/health`, `/apps`, `/airport-taxi-fares`, `/hotlines`, `/bus-routes`, `/bus-ridership`, `/static/apps/*`, `/places`, `/places/{id}`, `/places/{id}/schedule`, `/places/{id}/contacts`, `/predict/routes/{from}/{to}`, `/predict/places/{id}`, `/routes`, `/routes/{from}/{to}`, `/weather`, `/weather/{region}/{date}`, `/forecast`, `/map/land`, `/map/reefs`, `POST /auth/login` |
 | 🔒 **policy** (and admin) | `/boats`, `/boats/{code}`, `/trips`, `/boat-names`, `/harbour/boats/{code}/timeline`, all dataset routes (`/network`, `/paths`, `/route-boats`, `/sea`, `/safety`, `/signal`, `/harbour`, `/replay/*`), `/auth/me` |
 | 🔒 **admin** | `/auth/users` (list, add, delete users) |
 
@@ -128,6 +128,10 @@ How app screens map to the API:
 | Quick contacts (cargo, speedboat, ferry, shop) | `/places/{id}/contacts` | **Demo** names and placeholder numbers. |
 | One harbour boat over time (distance from Male, calls, next trip) (🔒) | `/harbour/boats/{code}/timeline` | Boat codes from `/harbour` (`boats[].id`). |
 | Taxi apps, ferry ticket app (store links, hotline, icon) | `/apps?place={id}` or `/apps?category=taxi` | Same fields as the web app's `AppLink`. Icons hosted by the API. |
+| Airport taxi fares | `/airport-taxi-fares` | Fixed fares from Velana Airport, car and 7 to 10 seats. |
+| Greater Male bus routes | `/bus-routes` | From, to, fare, frequency, hours, colour (English and Dhivehi). |
+| Bus passengers per route | `/bus-ridership?period=month` or `day` | **Sample data** (random figures in the organiser's file). |
+| Emergency numbers, hotlines | `/hotlines?category=emergency` or `transport` | Police, ambulance, fire; taxi line, MTCC. |
 | Dead zones, rough-sea crossings, harbour | `/signal`, `/safety`, `/harbour` | Whole datasets (see below). |
 
 ## App endpoints
@@ -359,6 +363,53 @@ Transport apps with store links, hotline and icon. Same field names as the web a
 - `icon`: full URL of a 256x256 JPEG hosted by the API (`/static/apps/{id}.jpg`).
 - The list is curated by the team (`backend/api/apps.json`), not from the boat data.
 
+#### `GET /airport-taxi-fares`
+Fixed taxi fares from Velana Airport (airport website, October 2026), in MVR.
+```json
+[
+  {"to": {"en": "Malé", "dv": "މާލެ"}, "place_id": "MLE.Male", "car_mvr": 70, "van_mvr": 110, "car": "MVR 70", "van": "MVR 110"},
+  {"to": {"en": "Hulhumalé Phase 1", "dv": "ހުޅުމާލެ ފޭސް 1"}, "place_id": "MLE.Hulhumale", "car_mvr": 80, "van_mvr": 125, "car": "MVR 80", "van": "MVR 125"},
+  {"to": {"en": "Hulhumalé Phase 2", "dv": "ހުޅުމާލެ ފޭސް 2"}, "place_id": "MLE.Hulhumale", "car_mvr": 85, "van_mvr": 130, "car": "MVR 85", "van": "MVR 130"}
+]
+```
+- `car`: standard car (under 6 seats). `van`: 7 to 10 seats. The `_mvr` fields are numbers; `car` and `van` are ready-made labels.
+
+#### `GET /hotlines?category=`
+Emergency numbers and transport hotlines. `category`: `emergency` or `transport` (optional).
+```json
+[
+  {"id": "police", "category": "emergency", "number": "119", "name": {"en": "Police", "dv": "ފުލުހުން"}},
+  {"id": "ambulance", "category": "emergency", "number": "102", "name": {"en": "Ambulance", "dv": "އެމްބިއުލާންސް"}},
+  {"id": "fire", "category": "emergency", "number": "118", "name": {"en": "Fire & Rescue", "dv": "ފަޔަރ އެންޑް ރެސްކިއު"}},
+  {"id": "taxi", "category": "transport", "number": "1655", "name": {"en": "Taxi line", "dv": "ޓެކްސީ ލައިން"}},
+  {"id": "mtcc", "category": "transport", "number": "1650", "name": {"en": "MTCC ferry & bus", "dv": "އެމްޓީސީސީ ފެރީ އަދި ބަސް"}}
+]
+```
+These are real public numbers.
+
+#### `GET /bus-routes`
+Greater Male bus routes (MTCC / RTL), from the team web app's list (public sources, October 2026) plus R7 from the organiser's MTCC file.
+```json
+[
+  {"code": "R3", "from": {"en": "Malé · West Park", "dv": "މާލެ · ވެސްޓް ޕާކް"}, "to": {"en": "Velana Airport", "dv": "ވެލާނާ އެއާޕޯޓު"},
+   "fare_mvr": 10, "fare": "MVR 10", "every_min": 60, "hours": "06:40-00:40", "color": "#C2413B", "ridership": true}
+]
+```
+- 10 routes: R1, R2, R3, R4, R5, R7, R9, R10, R11, R12. `fare_mvr`, `every_min` and `hours` are `null` where not known.
+- `ridership: true`: the route has figures in `/bus-ridership` (R1, R2, R3, R4, R7).
+- Routes change (road works, Ramadan); the RTL app has the live timetable.
+
+#### `GET /bus-ridership?period=month&route=&start=&end=`
+Bus passengers per route: `paid`, `foc` (free of charge: over 65, people with disabilities, infants) and `total`.
+**Sample data:** the organiser's MTCC file says every passenger figure is randomly generated and is not MTCC data. Show it as an example only.
+- `period`: `month` (`at` = `YYYY-MM`, Jan 2023 to Dec 2025, routes R1, R2, R3, R4, R7) or `day` (`at` = `YYYY-MM-DD`, 2025, routes R1, R2, R4).
+- `start`, `end`: in the same format as `at`. `400` for another `period`.
+```json
+{"sample": true, "note": "Route names and codes are real; all passenger figures are randomly generated and are not actual MTCC data (MTCC file notes).",
+ "period": "month",
+ "rows": [{"at": "2025-01", "route": "R1", "paid": 106877, "foc": 52451, "total": 159328}]}
+```
+
 #### `GET /boat-names` 🔒
 Display name for every boat code (1,776), `{code: name}`. Demo only.
 ```json
@@ -497,6 +548,15 @@ interface HarbourTimeline {
   places: Record<PlaceId, { id: PlaceId; name: string; lat: number; lon: number }>;
 }
 
+interface AirportTaxiFare { to: { en: string; dv: string }; place_id: PlaceId; car_mvr: number; van_mvr: number; car: string; van: string }
+interface Hotline { id: string; category: "emergency" | "transport"; number: string; name: { en: string; dv: string } }
+
+interface BusRoute {
+  code: string; from: { en: string; dv: string }; to: { en: string; dv: string };
+  fare_mvr: number | null; fare: string | null; every_min: number | null; hours: string | null; color: string; ridership: boolean;
+}
+interface BusRidership { sample: true; note: string; period: "month" | "day"; rows: { at: string; route: string; paid: number; foc: number; total: number }[] }
+
 interface LoginResult {
   access_token: string; token_type: "bearer"; expires_at: number; // Unix seconds
   user: { username: string; role: "policy" | "admin" };
@@ -523,3 +583,5 @@ interface LoginResult {
 | 2026-10-24 | `/apps`: taxi apps and RTL Travel with store links, hotlines and icons (public). Icons hosted at `/static/apps/`. |
 | 2026-10-24 | Prediction: `/predict/routes/{from}/{to}` and `/predict/places/{id}` (any date; probability per departure, weekday pattern, live sea forecast; checked on held-out days). Demo contacts: `/places/{id}/contacts`. All public. |
 | 2026-10-24 | `/harbour/boats/{code}/timeline` (policy): distance from Male every 30 minutes, stops, trips and projected next trip per North Harbour boat. |
+| 2026-10-24 | `/airport-taxi-fares` and `/hotlines` (emergency and transport numbers), public. |
+| 2026-10-24 | `/bus-routes` and `/bus-ridership` (sample passenger figures from the organiser's MTCC file), public. |

@@ -138,6 +138,19 @@ def main():
 
         copy(cur, "harbour_timelines", ["code", "data"], [(c, Jsonb(v)) for c, v in read("harbour-timelines.json").items()])
 
+        info = json.loads((HERE / "info.json").read_text())
+        copy(cur, "airport_taxi_fares", ["to_en", "to_dv", "place_id", "car_mvr", "van_mvr", "ord"],
+             [(f["to_en"], f["to_dv"], f["place_id"], f["car_mvr"], f["van_mvr"], i) for i, f in enumerate(info["airport_taxi_fares"])])
+        copy(cur, "hotlines", ["id", "category", "number", "name_en", "name_dv", "ord"],
+             [(h["id"], h["category"], h["number"], h["name_en"], h["name_dv"], i) for i, h in enumerate(info["hotlines"])])
+
+        copy(cur, "bus_routes", ["code", "from_en", "from_dv", "to_en", "to_dv", "fare_mvr", "every_min", "hours", "color", "ord"],
+             [(b["code"], b["from"]["en"], b["from"]["dv"], b["to"]["en"], b["to"]["dv"], b["fare_mvr"], b["every_min"], b["hours"], b["color"], i)
+              for i, b in enumerate(info["bus_routes"])])
+        bus = read("bus.json")
+        copy(cur, "bus_ridership", ["period", "at", "route", "paid", "foc", "total"],
+             [("month", *r) for r in bus["monthly"]] + [("day", *r) for r in bus["daily"]])
+
         apps = json.loads((HERE / "apps.json").read_text())["apps"]
         copy(cur, "apps", ["id", "category", "name", "name_dv", "blurb_en", "blurb_dv", "color", "initials", "icon", "ios_url",
                            "android_package", "web_url", "hotline", "places", "ord"],

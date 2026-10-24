@@ -35,8 +35,8 @@ Every speedboat has its own normal cruising speed (its median speed when moving 
 
 ## Folders
 
-- `pipeline/`: Python and DuckDB scripts that turn the raw data into the 19 data files the app and the API use.
-- `data/out/`: the 19 processed data files (committed).
+- `pipeline/`: Python and DuckDB scripts that turn the raw data into the 20 data files the app and the API use.
+- `data/out/`: the 20 processed data files (committed).
 - `api/`: FastAPI and PostgreSQL. `seed.py` loads the data files into the database (tables in `schema.sql`); the API serves them (docs at `/docs`). Trip-planning routes are public; boats, trips and the dashboard data need a login (`users.py` manages logins).
 - `dashboard/`: the Maasinga dashboard (Next.js), behind a login. Reads everything from the API.
 - `deploy/`: Docker Compose for the database, API and dashboard.
@@ -59,7 +59,7 @@ Full step-by-step guide (Docker, without Docker, deploying on a server, rebuildi
 troubleshooting): [docs/SETUP.md](docs/SETUP.md). Each part has a commented `.env.example`:
 `deploy/.env.example` (Docker), `api/.env.example` and `dashboard/.env.example` (without Docker).
 
-The 19 processed data files in `data/out` are committed, so nothing needs the raw organiser data (1.8 GB, not committed) unless you change the analysis.
+The 20 processed data files in `data/out` are committed, so nothing needs the raw organiser data (1.8 GB, not committed) unless you change the analysis.
 
 The app needs no internet except for the live wave forecast (Open-Meteo); without internet it says so and still shows the August data.
 
@@ -81,6 +81,7 @@ The app needs no internet except for the live wave forecast (Open-Meteo); withou
 | App data for the API: every trip, boats, weather, island links to the web app, demo contacts | `pipeline/11_app_data.py` | `trips.json`, `boats.json`, `weather.json`, `places-extra.json`, `contacts.json` |
 | Check of the departure prediction on held-out days | `pipeline/12_predict.py` | `predict-eval.json` |
 | Timeline per North Harbour boat: distance from Male, trips, next trip | `pipeline/13_harbour_timeline.py` | `harbour-timelines.json` |
+| Bus passengers from the MTCC file (sample data) | `pipeline/14_bus.py` | `bus.json` |
 | Offline basemap from OpenStreetMap | `pipeline/basemap/build_basemap.py` | `land.json`, `reefs.json`, `resorts.json` |
 
 Each script starts with a short note on its method and thresholds.
@@ -92,7 +93,7 @@ Each script starts with a short note on its method and thresholds.
 | FollowMe boat GPS, August 2025 (17.4M positions, 1,776 trackers) | Everything at sea | Organiser dataset |
 | Avas rides Aug to Sep 2026 and car fare matrix | Explored in `pipeline/09_taxi.py`, not shown in the app | Organiser dataset |
 | MACL airport traffic 2012 to Jul 2026 | Explored in `pipeline/09_taxi.py`, not shown in the app | Organiser dataset |
-| MTCC bus and ferry | Not used: its README says the passenger figures are randomly generated | Organiser dataset |
+| MTCC bus and ferry | Bus route codes and names; its passenger figures are served by the API only as marked sample data, because the file says they are randomly generated | Organiser dataset |
 | Team weather collector (`weather/` at the repo root): ERA5 wind gusts and ERA5-Ocean waves via Open-Meteo | Waves and wind gusts, August 2025 | Open-Meteo, CC BY 4.0 (ECMWF Copernicus data) |
 | NASA GPM IMERG daily rain (same export) | Rain per day on the Sea page | NASA, public |
 | Open-Meteo Marine API | Live wave forecast on Plan a trip | Open-Meteo, CC BY 4.0 |

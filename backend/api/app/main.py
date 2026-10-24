@@ -558,6 +558,54 @@ def harbour_timeline(code: str):
             **d, "places": places}
 
 
+@app.get("/airport-taxi-fares", tags=["app"])
+def airport_taxi_fares():
+    """Fixed taxi fares from Velana Airport in MVR: standard car (under 6 seats) and 7 to 10 seats (airport website)."""
+    return [{"to": {"en": f["to_en"], "dv": f["to_dv"]}, "place_id": f["place_id"], "car_mvr": f["car_mvr"], "van_mvr": f["van_mvr"],
+             "car": f"MVR {f['car_mvr']}", "van": f"MVR {f['van_mvr']}"}
+            for f in rows("SELECT * FROM airport_taxi_fares ORDER BY ord")]
+
+
+@app.get("/hotlines", tags=["app"])
+def hotlines(category: str | None = Query(None, description="emergency or transport")):
+    """Emergency numbers (police, ambulance, fire and rescue) and transport hotlines (taxi line, MTCC ferry and bus)."""
+    return [{"id": h["id"], "category": h["category"], "number": h["number"], "name": {"en": h["name_en"], "dv": h["name_dv"]}}
+            for h in rows("SELECT * FROM hotlines WHERE %s::text IS NULL OR category = %s ORDER BY ord", category, category)]
+
+
+@app.get("/bus-routes", tags=["app"])
+def bus_routes():
+    """Greater Male bus routes (MTCC / RTL): from, to, fare, frequency, hours and colour. `ridership`: the route has
+    passenger figures in /bus-ridership."""
+    with_data = {r["route"] for r in rows("SELECT DISTINCT route FROM bus_ridership")}
+    return [{"code": b["code"], "from": {"en": b["from_en"], "dv": b["from_dv"]}, "to": {"en": b["to_en"], "dv": b["to_dv"]},
+             "fare_mvr": b["fare_mvr"], "fare": f"MVR {b['fare_mvr']}" if b["fare_mvr"] else None, "every_min": b["every_min"],
+             "hours": b["hours"], "color": b["color"], "ridership": b["code"] in with_data}
+            for b in rows("SELECT * FROM bus_routes ORDER BY ord")]
+
+
+@app.get("/bus-ridership", tags=["app"])
+def bus_ridership(
+    period: str = Query("month", description="month (Jan 2023 to Dec 2025) or day (2025)"),
+    route: str | None = Query(None, description="Route code, for example R1"),
+    start: str | None = Query(None, description="First month or day, YYYY-MM or YYYY-MM-DD"),
+    end: str | None = Query(None, description="Last month or day, YYYY-MM or YYYY-MM-DD"),
+):
+    """Bus passengers per route and month or day: paid, free of charge (over 65, disabilities, infants) and total.
+    SAMPLE DATA: the organiser's MTCC file says every passenger figure is randomly generated."""
+    if period not in ("month", "day"):
+        raise HTTPException(400, "period must be month or day")
+    return {
+        "sample": True,
+        "note": "Route names and codes are real; all passenger figures are randomly generated and are not actual MTCC data (MTCC file notes).",
+        "period": period,
+        "rows": rows(
+            "SELECT at, route, paid, foc, total FROM bus_ridership WHERE period = %s AND (%s::text IS NULL OR route = %s) "
+            "AND (%s::text IS NULL OR at >= %s) AND (%s::text IS NULL OR at <= %s) ORDER BY at, route",
+            period, route, route, start, start, end, end),
+    }
+
+
 # ---------- Departure prediction (model checked in pipeline/12_predict.py) ----------
 
 PRED_A = 2.0  # pulls a weekday's rate toward the all-days rate; same value as the check
