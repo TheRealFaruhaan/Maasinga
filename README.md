@@ -1,0 +1,169 @@
+# Maasinga
+
+Sea mobility for the Maldives, built from the GPS of 1,776 boats (FollowMe, August 2025), with
+ERA5 and NASA IMERG weather, the 2022 Census and OpenStreetMap.
+
+This repo has two parts:
+
+| Folder | What it is | Details |
+|---|---|---|
+| `backend/` | Data pipeline, PostgreSQL database, the Maasinga API (FastAPI) and its own dashboard | [backend/README.md](backend/README.md), [backend/docs/SETUP.md](backend/docs/SETUP.md) |
+| `web/` | The public trip planner (mobile-first, English and Dhivehi) and the **policy dashboard** at `/policy`, behind the API's login | this file, [web/API_GAPS.md](web/API_GAPS.md) |
+
+The final database is committed as a dump: [`backend/data/db/maasinga_db_2026-10-24.sql.gz`](backend/data/db/maasinga_db_2026-10-24.sql.gz).
+
+## How it fits together
+
+```
+PostgreSQL  ──  Maasinga API (FastAPI, :8000)  ──┬──  web/  public app + /policy dashboard   (Next.js)
+ (the dump)        public routes + logins         └──  backend/dashboard/  (optional, Next.js)
+```
+
+- The **public app** (`web/`) calls the API's public routes straight from the browser.
+- The **policy dashboard** (`web/` at `/policy`) logs in through the web app's own server routes, which keep the API token in an httpOnly cookie and call the protected API routes from the server.
+
+## Default login
+
+| Username | Password | Role |
+|---|---|---|
+| `admin` | `YOUR_ADMIN_PASSWORD` | `admin` (sees the policy dashboard and can manage users) |
+
+The dump has **no users in it** (`auth.users` is empty), so step 2 below creates this login. Change the
+password on any server other people can reach (`python users.py add admin --role admin` sets a new one).
+More logins: `python users.py add <name>` (role `policy`), `python users.py list`, `python users.py remove <name>`.
+
+## Run the full suite
+
+Tested end to end on 24 October 2026: restore the dump, run the API, log in, run the web app and open the policy dashboard.
+
+You need: Python 3.11+, Node.js 20+ (npm), PostgreSQL 14+ (or Docker), and `gunzip` and `psql`.
+
+### 1. Database: restore the final dump
+
+Restore into an **empty** database: the dump creates the `maasinga` and `auth` schemas itself.
+
+**With Docker** (from `backend/deploy/`, after `cp .env.example .env` and setting `POSTGRES_PASSWORD`, `JWT_SECRET`):
+
+```bash
+cd backend/deploy
+docker compose down -v                  # only if an older database exists: starts from an empty volume
+docker compose up -d db                 # just the database
+gunzip -c ../data/db/maasinga_db_2026-10-24.sql.gz \
+  | docker compose exec -T db psql -v ON_ERROR_STOP=1 -U maasinga -d maasinga
+```
+
+**Without Docker**:
+
+```bash
+createuser maasinga --pwprompt          # choose a password (on Ubuntu: sudo -u postgres createuser ...)
+createdb maasinga --owner maasinga
+gunzip -c backend/data/db/maasinga_db_2026-10-24.sql.gz \
+  | psql -v ON_ERROR_STOP=1 "postgresql://maasinga:PASSWORD@localhost:5432/maasinga"
+```
+
+Check: `psql ... -c "select count(*) from maasinga.trips"` gives **68840** (and 508 places, 654 routes, 1613 boats).
+
+> The other way to fill the database is `backend/api/seed.py`, which loads the 20 files in `backend/data/out`
+> (that's what `docker compose up` does through its `seed` service). Use the dump for the exact final data.
+
+### 2. API
+
+**With Docker** (skip the seed service so it doesn't reload over the dump):
+
+```bash
+cd backend/deploy
+docker compose up -d --no-deps api dashboard
+docker compose exec -e PASSWORD='YOUR_ADMIN_PASSWORD' api python users.py add admin --role admin
+```
+
+**Without Docker**:
+
+```bash
+cd backend/api
+cp .env.example .env                    # set DATABASE_URL (password from step 1) and JWT_SECRET
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+PASSWORD='YOUR_ADMIN_PASSWORD' .venv/bin/python users.py add admin --role admin
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Check:
+
+```bash
+curl http://localhost:8000/health       # {"ok":true,"routes":654}
+curl -X POST http://localhost:8000/auth/login -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"YOUR_ADMIN_PASSWORD"}'     # {"access_token": ..., "user": {...}}
+```
+
+Interactive API docs: http://localhost:8000/docs. Every endpoint with example answers: [backend/docs/API.md](backend/docs/API.md).
+
+`CORS_ORIGINS` (API `.env`) must allow the web app's address, for example `http://localhost:3001`, or `*` on your own computer.
+
+### 3. Web app (public app + policy dashboard)
+
+```bash
+cd web
+cp .env.example .env.local              # point it at your API (below)
+npm install --include=dev               # --include=dev matters if NODE_ENV=production is set in your shell
+```
+
+`.env.local` for an API on the same machine:
+
+```bash
+NEXT_PUBLIC_MAASINGA_API=http://localhost:8000   # what the browser calls; built in at build time
+MAASINGA_API=http://127.0.0.1:8000               # what the web server calls for /policy; read at runtime
+```
+
+Without a `.env.local`, both use the hosted API at `https://maasinga-api.devoup.com`.
+
+Development (port 3001, so it doesn't clash with the backend dashboard on 3000):
+
+```bash
+npm run dev -- -H 127.0.0.1 -p 3001
+```
+
+Production:
+
+```bash
+npm run build
+npm start -- -H 127.0.0.1 -p 3001
+```
+
+Open:
+- http://localhost:3001: the public app. It asks for your location (or pick an island), then "What would you like to find?"
+- http://localhost:3001/policy: the policy dashboard. Log in as `admin` / `YOUR_ADMIN_PASSWORD`.
+
+### 4. Backend dashboard (optional)
+
+The backend has its own dashboard (`backend/dashboard`, port 3000), started by Docker in step 2 or with
+`pnpm install && pnpm dev` (see [backend/docs/SETUP.md](backend/docs/SETUP.md)). It logs in with the same users.
+
+## How we ran it on the team's dev server
+
+The development server runs everything as Crundi services:
+
+| Service | Command (folder) | Port | Address |
+|---|---|---|---|
+| `maasinga-web-prod` | `NODE_ENV=production npm run build && NODE_ENV=production npx next start -H 127.0.0.1 -p 4311` (`web/`) | 4311 | https://maasinga-web.dev.faruhaan.com (public) |
+| `maasinga-web` | `NODE_ENV=development npx next dev -H 127.0.0.1 -p 4310` (`web/`) | 4310 | https://maasinga-dev.dev.faruhaan.com (team only, Crundi sign-in) |
+| API | hosted separately | | https://maasinga-api.devoup.com |
+
+- Changes show up on the dev address at once. The public address picks them up when `maasinga-web-prod` restarts (it rebuilds, about 30 seconds).
+- The data collectors (`collector/` for the Maldives Ports queue and `weather/` for ERA5, IMERG and live weather) run on that server as the `port-collector` and `weather-live` services. They aren't part of this repo; the backend uses its committed weather files without them.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `tsc` or `eslint` "not found", or `Cannot find module '@tailwindcss/turbopack'` | Dev packages were skipped because `NODE_ENV=production`: run `npm install --include=dev`, then delete `web/.next` and restart. |
+| New Tailwind classes have no effect in `next dev` | Restart the dev server (Turbopack's CSS cache). |
+| The public app shows "Couldn't load" | The API isn't reachable from the browser, or `CORS_ORIGINS` doesn't include the web app's address. |
+| `/policy` login says the API can't be reached | Set `MAASINGA_API` to an address the web **server** can reach, and restart it. |
+| Restoring the dump fails with "already exists" | The database isn't empty: restore into a new database (or `docker compose down -v` first). |
+
+## More
+
+- [backend/README.md](backend/README.md): what the data shows, the pipeline, data sources and limits.
+- [backend/docs/SETUP.md](backend/docs/SETUP.md): every backend setting, deploying on a server, rebuilding the data.
+- [backend/docs/API.md](backend/docs/API.md) and [backend/docs/DATA.md](backend/docs/DATA.md): API and data reference.
+- [web/API_GAPS.md](web/API_GAPS.md): what the web app still needs from the API.

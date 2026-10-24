@@ -7,7 +7,7 @@ import type { NextRequest, NextResponse } from "next/server";
 export const POLICY_COOKIE = "maasinga_policy";
 const MAX_AGE = 8 * 60 * 60; // 8 h; the API may expire tokens sooner (then we get 401 and log out)
 
-export const API_BASE = process.env.MAASINGA_API ?? process.env.NEXT_PUBLIC_MAASINGA_API ?? "https://maasinga-api.devoup.com";
+export const API_BASE = process.env.MAASINGA_API || process.env.NEXT_PUBLIC_MAASINGA_API || "https://maasinga-api.devoup.com";
 
 const isHttps = (req: NextRequest) =>
   req.nextUrl.protocol === "https:" || req.headers.get("x-forwarded-proto") === "https";

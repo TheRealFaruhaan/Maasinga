@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from "react";
 
-export const API_BASE = process.env.NEXT_PUBLIC_MAASINGA_API ?? "https://maasinga-api.devoup.com";
+export const API_BASE = process.env.NEXT_PUBLIC_MAASINGA_API || "https://maasinga-api.devoup.com";
 
 export type PlaceId = string;
 export type BoatCode = string;
