@@ -45,3 +45,14 @@ html[dir="rtl"] .text-xs { font-size: 13px; }
     transform: translateY(6px);
   }
 }
+
+/* Footer data-sources strip: the row is drawn twice; moving by half its
+   width lands exactly where it started, so the loop has no seam. */
+@keyframes maas-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

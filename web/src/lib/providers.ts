@@ -8,7 +8,7 @@ export interface Provider {
   logo?: string;
   /** White logos need a dark tile. */
   dark?: boolean;
-  /** Logo is only an icon; show the name beside it. */
+  /** Logo has no name in it: show the name to its right. */
   iconOnly?: boolean;
   /** Wide wordmark: give it two grid cells. */
   wide?: boolean;
@@ -36,10 +36,10 @@ const LOGOS: Record<string, Pick<Provider, "logo" | "dark" | "iconOnly" | "wide"
   followme: { logo: "/providers/followme.png" },
   macl: { logo: "/providers/macl.svg", dark: true },
   openmeteo: { logo: "/providers/openmeteo.svg", dark: true, iconOnly: true },
-  nasa: { logo: "/providers/nasa.svg", iconOnly: true },
+  nasa: { logo: "/providers/nasa.svg" }, // the meatball already says NASA
   era5: { logo: "/providers/copernicus.svg", dark: true, wide: true },
   census: { logo: "/providers/mbs.svg", wide: true },
-  osm: { logo: "/providers/osm.svg" }, // the caption carries the required credit
+  osm: { logo: "/providers/osm.svg", iconOnly: true, wide: true }, // caption carries the required credit; wide so it shows in full
 };
 
 export const withLogo = (p: Provider): Provider => ({ ...p, ...LOGOS[p.id] });
