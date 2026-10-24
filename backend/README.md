@@ -14,16 +14,24 @@ Maasinga reads the boats themselves. Many boats already carry a FollowMe GPS tra
 |---|---|---|---|
 | Overview `/` | Everyone | What are the main findings? | One number per topic |
 | Travel `/travel` | Passengers | When do boats leave, is tomorrow's sea safe, is there signal on the way? | Usual departures for 654 routes from 68,840 detected trips |
-| Sea state `/sea` | Coast Guard, Met service | How rough is the sea, read from boat speed? | Speedboat pace against wave height: r = -0.89 (North), -0.76 (Male and Ari) |
+| Sea state `/sea` | Coast Guard, Met service | How rough is the sea, read from boat speed? | Speedboat pace against wave height: r = -0.90 (North), -0.84 (Male and Ari) |
 | Safety `/safety` | Coast Guard, Transport Authority | Who still crosses open sea in rough weather? | Crossings fell only 22% on rough days; 29% of speedboats kept full speed |
 | Signal `/signal` | Telecom companies, Coast Guard | Where do boats lose mobile signal? | 73 km with no signal between Gaafu Alif and Laamu, crossed by 69 boats |
 | Access `/access` | Island councils, Ministry of Transport | Which islands get too few boats for their population? | Travel Index: boat departures a week per 1,000 residents (Census 2022) |
 | Harbour `/harbour` | MPL, Male City Council | Which boats use Male North Harbour, from where, and how long they stay? | 119 boats stayed in August, 98 of them dhonis or ferries; a dhoni typically stays 6 h |
 | Method `/method` | Judges | Data, method and limits | |
 
+### API for apps
+
+The same data is served to other apps (the team's public trip planner in `web/`) by the Maasinga API. Every endpoint, with example answers: [docs/API.md](docs/API.md).
+
+- Public (no login): islands, departure and arrival boards, routes with one-stop connections, weather, a live sea rating, transport apps (taxi, RTL ferry tickets) and demo quick contacts.
+- **Departure prediction for any date**: the chance of each departure from the August pattern for that weekday, adjusted by the live sea forecast. Checked on 7 days the model did not see: 84% of "very likely" departures ran (within 15 minutes), 64% of "likely" and 42% of "possible".
+- With a login (roles `policy` and `admin`): every boat and trip, per-boat North Harbour timelines with the projected next trip, and all dashboard data.
+
 ### The new method: the Sea Pace Index
 
-Every speedboat has its own normal cruising speed (its median speed when moving over 15 knots). The Sea Pace Index for a region and hour is the average of each boat's speed divided by its own normal speed. When waves rise, the index falls: about 13% slower per extra metre of wave around Male. So 790 speedboats work as a network of free wave sensors, and the same model turns a wave forecast into a go, take care or avoid rating for each route.
+Every speedboat has its own normal cruising speed (its median speed when moving over 15 knots). The Sea Pace Index for a region and hour is the average of each boat's speed divided by its own normal speed. When waves rise, the index falls: about 11% slower per extra metre of wave around Male. So 790 speedboats work as a network of free wave sensors, and the same model turns a wave forecast into a go, take care or avoid rating for each route.
 
 ## Folders
 
@@ -90,10 +98,13 @@ Each script starts with a short note on its method and thresholds.
 | Open-Meteo Marine API | Live wave forecast on Plan a trip | Open-Meteo, CC BY 4.0 |
 | Maldives Bureau of Statistics, Census 2022 Table P3 | Island population | MBS, public |
 | OpenStreetMap | Island positions, land, reefs, resort names | OpenStreetMap contributors, ODbL |
+| Team boat name list (best guesses per tracker) | Boat names, vessel kind and operator (demo) | Team |
+| Team web app (`web/`): island list and transport apps | Dhivehi island names, island ids for the web app, taxi and RTL app links and icons | Team; app links from the App Store and Google Play |
 
 Full URLs and caveats: `pipeline/reference/SOURCES.md`.
 
-No personal data is published. Tracker IDs are replaced by a short hash.
+No personal data is published. Tracker IDs are replaced by a short hash; the raw tracker IDs (IMEIs) stay on the team's computers.
+Boat names are best guesses from the team's list and the quick contacts are demo data with placeholder numbers (7XXXXXX / 9XXXXXX).
 
 ## Limits
 
@@ -103,9 +114,10 @@ No personal data is published. Tracker IDs are replaced by a short hash.
 - Weather is the worst value over 5 to 8 sea points per region (0.25 degree grid), not the exact place of each boat.
 - A correlation is not proof of cause. The South shows the weakest link (r = -0.39) because its boats run inside wide, sheltered lagoons.
 - Stops at sea were tested as a breakdown signal and rejected: they are 2.6 times more common on calm days, so most are leisure stops.
+- Departure predictions repeat the August pattern. They cannot know about holidays, breakdowns, new timetables or one-off trips.
 
 ## Tools
 
-Python, DuckDB, Next.js 16, React 19, deck.gl 9, d3-scale, Radix UI.
+Python, DuckDB, FastAPI, PostgreSQL, Docker, Next.js 16, React 19, deck.gl 9, d3-scale, Radix UI.
 
 AI tools: Claude Code (Anthropic) was used to write the pipeline and web code, to find and check public reference data (census, OpenStreetMap), and to check results. Every number in the app comes from the pipeline scripts in this repository, and the team reviewed the output.

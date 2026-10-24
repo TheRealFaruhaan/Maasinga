@@ -29,6 +29,7 @@ FollowMe boat GPS (organiser) + team weather export (ERA5, NASA IMERG) + Census 
         |        FastAPI serves them. Interactive docs at /docs.
         v
    dashboard/   Next.js dashboard behind a login. Reads everything from the API.
+                Other apps (the team's public trip planner in web/) call the same API: see docs/API.md.
 ```
 
 | Folder | What it is |
@@ -157,8 +158,11 @@ The dashboard needs the API and a login. The live wave forecast on Plan a trip n
 2. Copy the repo to the server (`git clone ...`) and go to `backend/deploy`.
 3. `cp .env.example .env` and set:
    - `POSTGRES_PASSWORD`: a long random value (`openssl rand -hex 24`)
+   - `JWT_SECRET`: a long random value that signs login tokens (`openssl rand -hex 32`); keep it private
+   - `ADMIN_PASSWORD`: the first admin login (user `admin`); change it later with `users.py`
    - `PUBLIC_API_URL`: the public HTTPS address of the API, for example `https://maasinga-api.your-domain.com`
-   - `CORS_ORIGINS`: the dashboard address, for example `https://maasinga.your-domain.com`
+   - `CORS_ORIGINS`: `*` when other apps (such as the team's web app) call the API from the browser, or a
+     comma list of allowed sites, for example `https://maasinga.your-domain.com`
 4. `docker compose up -d --build`
 5. Put HTTPS in front of port 3000 (dashboard) and port 8000 (API). Two common ways:
    - **Caddy** (gets certificates automatically). `/etc/caddy/Caddyfile`:
@@ -210,9 +214,12 @@ Only needed to change the analysis. The organisers' data is not in git (1.8 GB).
 backend/data/raw/FollowMe/FollowMe_august_2025/1.csv ... 31.csv     (FollowMe GPS, August 2025)
 ```
 
-(Other organiser files are optional: step `09_taxi.py` uses them and is skipped when they are missing:
-`data/raw/Avas_Ride/avas_rides_aug_sep_2026.csv`, `data/raw/Avas_Ride/car_fare_matrix.csv`,
-`data/raw/MACL/MACL/Airport traffic_Dataset_27092026.csv`.)
+(Other files are optional; a step that needs a missing file is skipped and its committed output is kept:
+- step `09_taxi.py`: `data/raw/Avas_Ride/avas_rides_aug_sep_2026.csv`, `data/raw/Avas_Ride/car_fare_matrix.csv`,
+  `data/raw/MACL/MACL/Airport traffic_Dataset_27092026.csv` (organiser data);
+- step `10_boat_names.py`: `data/raw/imei_name_guess_all.csv` (the team's boat name list; it holds tracker IDs, so it is not in git).
+Step `11_app_data.py` also reads `web/src/data/islands.json` at the repo root when it is there, to match the web app's island ids;
+otherwise it uses `pipeline/reference/web_islands.csv`.)
 
 Then, from `backend/`:
 
@@ -223,7 +230,7 @@ python3 -m venv .venv
 ```
 
 This writes the 19 files to `data/out` and the per-boat harbour table (with real tracker IDs,
-not shared) to `data/work/`. Then reload the database: `docker compose run --rm seed && docker compose restart api`
+not shared) to `data/work/`. Logins are kept: they live in the database, not in these files. Then reload the database: `docker compose run --rm seed && docker compose restart api`
 (Docker) or `api/.venv/bin/python api/seed.py` and restart the API (no Docker).
 
 To read the raw data from another folder set `MAASINGA_RAW=/path/to/raw` before running the pipeline.
