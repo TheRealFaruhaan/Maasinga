@@ -38,3 +38,10 @@ html[dir="rtl"] .text-\[10px\] { font-size: 12px; }
 html[dir="rtl"] .text-\[11px\] { font-size: 13px; }
 html[dir="rtl"] .text-xs { font-size: 13px; }
 
+
+@keyframes maas-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

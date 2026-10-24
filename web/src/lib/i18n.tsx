@@ -1,5 +1,6 @@
 "use client";
 
+import { loadPrefs, savePrefs } from "./prefs";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
 export type Lang = "en" | "dv";
@@ -7,8 +8,52 @@ export type Lang = "en" | "dv";
 // Dhivehi strings are a first pass — have a native speaker review before launch.
 const STRINGS = {
   en: {
+    boatsServing: (island: string) => `Boats serving ${island}`,
+    serviceState: {
+      docked_here: () => "In harbour",
+      loading_here: () => "Loading",
+      arriving: () => "Arriving",
+      en_route_here: () => "On the way",
+      loading_away: (other: string) => `Loading at ${other}`,
+      away: (other: string) => `At ${other}`,
+      left: (other: string) => `To ${other}`,
+    },
+    movement: { arrived: "Arrived", departed: "Departed", departs: "Departure", arrives: "Arrives" },
+    updatedAgo: (m: number) => (m < 60 ? `Updated ${m} min ago` : `Updated ${Math.round(m / 60)} h ago`),
+    open: "Open",
+    moreOptions: "More options",
+    website: "Website",
+    maleCity: "Malé City",
+    maleCitySub: "Malé · Hulhumalé · Villimalé",
+    taxi: "Taxi",
+    busRoutes: "Bus routes",
+    every: (m: number) => `every ${m} min`,
+    busNote: "Routes change with road works and Ramadan; the RTL app has live times.",
+    airportTaxi: "Airport taxi fares",
+    car: "Car",
+    van: "7–10 seats",
+    hotlines: "Hotlines",
+    taxiLine: "Taxi line",
+    mtcc: "MTCC ferry & bus",
+    emergency: "Emergency",
+    inHarbour: "In the harbour",
+    ferryTickets: "Ferry tickets",
+    intentTitle: "What would you like to do?",
+    intentSub: "Pick one to see the boats that fit.",
+    intents: {
+      travel: { title: "Travel to an island", sub: (from: string) => (from ? `Ferries and launches from ${from}` : "Ferries and launches") },
+      cargo: { title: "Send cargo", sub: (from: string) => (from ? `Cargo boats from ${from} and who to call` : "Cargo boats and who to call") },
+    },
+    back: "Back",
+    sendTo: "Send to",
+    whereSend: "Where is it going?",
+    cargoBoats: "Cargo Boats",
+    pickToCargo: "Choose where the cargo is going to see boats on this route.",
     from: "From",
     yourIsland: "Your island",
+    destination: "Destination",
+    noDestination: "Pick one above",
+    contactsFor: "Whose contacts",
     locating: "Locating…",
     locationOffShort: "Location off",
     to: "To",
@@ -53,8 +98,52 @@ const STRINGS = {
     inDays: (n: number) => `In ${n} days`,
   },
   dv: {
+    boatsServing: (island: string) => `${island} އަށް ދަތުރުކުރާ ބޯޓުތައް`,
+    serviceState: {
+      docked_here: () => "ބަނދަރުގައި",
+      loading_here: () => "ބާރު އަރުވަނީ",
+      arriving: () => "ފޯރަނީ",
+      en_route_here: () => "އަންނަނީ",
+      loading_away: (other: string) => `${other} ގައި ބާރު އަރުވަނީ`,
+      away: (other: string) => `${other} ގައި`,
+      left: (other: string) => `${other} އަށް`,
+    },
+    movement: { arrived: "އައި", departed: "ފުރި", departs: "ފުރާނީ", arrives: "ފޯރާނީ" },
+    updatedAgo: (m: number) => (m < 60 ? `${m} މިނިޓު ކުރިން` : `${Math.round(m / 60)} ގަޑިއިރު ކުރިން`),
+    open: "ހުޅުވާ",
+    moreOptions: "އިތުރު",
+    website: "ވެބްސައިޓް",
+    maleCity: "މާލެ ސިޓީ",
+    maleCitySub: "މާލެ · ހުޅުމާލެ · ވިލިމާލެ",
+    taxi: "ޓެކްސީ",
+    busRoutes: "ބަސް ރޫޓުތައް",
+    every: (m: number) => `ކޮންމެ ${m} މިނިޓަކުން`,
+    busNote: "މަގު މަސައްކަތާއި ރަމަޟާނުގައި ރޫޓު ބަދަލުވެދާނެ؛ ލައިވް ގަޑިތައް RTL އެޕުގައި.",
+    airportTaxi: "އެއާޕޯޓު ޓެކްސީ ރޭޓް",
+    car: "ކާރު",
+    van: "7–10 ގޮނޑި",
+    hotlines: "ހޮޓްލައިން",
+    taxiLine: "ޓެކްސީ ލައިން",
+    mtcc: "އެމްޓީސީސީ ފެރީ އަދި ބަސް",
+    emergency: "ކުއްލި ހާލަތު",
+    inHarbour: "ބަނދަރުގައި",
+    ferryTickets: "ފެރީ ޓިކެޓް",
+    intentTitle: "ކޮން ކަމެއް ކުރަން ބޭނުންވަނީ؟",
+    intentSub: "އެއްޗެއް ހޮވާ، އެއަށް ފެތޭ ބޯޓުތައް ފެނޭނެ.",
+    intents: {
+      travel: { title: "ރަށަކަށް ދަތުރުކުރުން", sub: (from: string) => (from ? `${from} އިން ފުރާ ފެރީ އަދި ލޯންޗު` : "ފެރީ އަދި ލޯންޗު") },
+      cargo: { title: "ބާރު ފޮނުވުން", sub: (from: string) => (from ? `${from} އިން ފުރާ ކާގޯ ބޯޓުތަކާއި ގުޅޭނެ ނަންބަރު` : "ކާގޯ ބޯޓުތަކާއި ގުޅޭނެ ނަންބަރު") },
+    },
+    back: "ފަހަތަށް",
+    sendTo: "ފޮނުވާ ރަށް",
+    whereSend: "ބާރު ދާނީ ކޮންތާކަށް؟",
+    cargoBoats: "ކާގޯ ބޯޓުތައް",
+    pickToCargo: "މި މަގުގެ ބޯޓުތައް ބެލުމަށް ބާރު ފޮނުވާ ރަށް ހޮވާ.",
     from: "ކޮންތާކުން",
     yourIsland: "ތިބާ ހުރި ރަށް",
+    destination: "ދާ ރަށް",
+    noDestination: "މަތީގައި ހޮވާ",
+    contactsFor: "ކާކުގެ ނަންބަރު",
     locating: "ހޯދަނީ…",
     locationOffShort: "ލޮކޭޝަން ނުލިބުނު",
     to: "ކޮންތާކަށް",
@@ -103,20 +192,19 @@ const STRINGS = {
 export type Strings = (typeof STRINGS)["en"];
 
 const Ctx = createContext<{ lang: Lang; t: Strings; setLang: (l: Lang) => void } | null>(null);
-const KEY = "maasinga_lang";
 
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>("en");
 
   useEffect(() => {
-    const saved = localStorage.getItem(KEY);
+    const saved = loadPrefs().lang;
     // Restore after hydration; localStorage isn't available during SSR.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (saved === "en" || saved === "dv") setLang(saved);
+    if (saved) setLang(saved);
   }, []);
 
   const choose = useCallback((l: Lang) => {
-    localStorage.setItem(KEY, l);
+    savePrefs({ lang: l });
     setLang(l);
   }, []);
 

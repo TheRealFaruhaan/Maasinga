@@ -6,7 +6,17 @@ import { getAtoll } from "@/lib/islands";
 import { useLang } from "@/lib/i18n";
 
 /** The destination picker. "From" lives in the top bar (LocationPill). */
-export function DestinationSelector({ to, onPick }: { to: Island | undefined; onPick: () => void }) {
+export function DestinationSelector({
+  to,
+  onPick,
+  label,
+  placeholder,
+}: {
+  to: Island | undefined;
+  onPick: () => void;
+  label?: string;
+  placeholder?: string;
+}) {
   const { t, lang } = useLang();
   const atoll = to ? getAtoll(to.atoll) : undefined;
   return (
@@ -18,7 +28,7 @@ export function DestinationSelector({ to, onPick }: { to: Island | undefined; on
         <MapPin className="size-5" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-ink/45">{t.to}</span>
+        <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-ink/45">{label ?? t.to}</span>
         {to ? (
           <span className="mt-0.5 flex items-baseline gap-2">
             <span className="font-display text-2xl font-extrabold leading-none text-brand" dir="ltr">
@@ -33,7 +43,7 @@ export function DestinationSelector({ to, onPick }: { to: Island | undefined; on
             </span>
           </span>
         ) : (
-          <span className="mt-0.5 block truncate text-[18px] font-semibold text-brand-ink/40">{t.whereTo}</span>
+          <span className="mt-0.5 block truncate text-[18px] font-semibold text-brand-ink/40">{placeholder ?? t.whereTo}</span>
         )}
       </span>
       <ChevronDown className="size-5 shrink-0 text-brand-ink/30" />

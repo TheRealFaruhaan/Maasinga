@@ -1,10 +1,11 @@
 "use client";
 
 import { ChevronRight, MapPin, Phone, Sailboat, Ship, Store, Truck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { loadPrefs, savePrefs } from "@/lib/prefs";
 import { relativeDays, useLang } from "@/lib/i18n";
 import type { Island } from "@/lib/islands";
-import { CONTACTS, type BoatInArea, type ContactKind, type Trip } from "@/lib/mock";
+import { contactsFor, type BoatInArea, type ContactKind, type Trip } from "@/lib/mock";
 
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -149,12 +150,79 @@ const CONTACT_TABS: { kind: ContactKind; Icon: typeof Truck }[] = [
   { kind: "shop", Icon: Store },
 ];
 
-export function QuickContact() {
-  const { t } = useLang();
-  const [kind, setKind] = useState<ContactKind>("cargo");
+/**
+ * Contacts for the person's island, with a switch to the destination's so
+ * they can reach someone there before sending a package. The chosen side and
+ * tab are remembered.
+ */
+export function QuickContact({ from, to, fallback = "cargo" }: { from: Island; to?: Island; fallback?: ContactKind }) {
+  const { t, lang } = useLang();
+  const [kind, setKindState] = useState<ContactKind>(fallback);
+  const [sideState, setSideState] = useState<"here" | "dest">("here");
+  useEffect(() => {
+    const p = loadPrefs();
+    // Restore after hydration; localStorage isn't available during SSR.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (p.contactTab?.home) setKindState(p.contactTab.home);
+    if (p.contactSide) setSideState(p.contactSide);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+  const setKind = (k: ContactKind) => {
+    setKindState(k);
+    savePrefs({ contactTab: { ...loadPrefs().contactTab, home: k } });
+  };
+  const setSide = (v: "here" | "dest") => {
+    setSideState(v);
+    savePrefs({ contactSide: v });
+  };
+
+  const side = to ? sideState : "here";
+  const island = side === "dest" && to ? to : from;
+  const contacts = useMemo(() => contactsFor(island)[kind], [island, kind]);
+  const nameOf = (i: Island) => (lang === "dv" ? i.name_dv : i.name_en);
+
   return (
     <div className="overflow-hidden rounded-[22px] bg-white/15">
-      <div className="flex items-center justify-between p-1.5" role="tablist">
+      {/* Whose contacts: your island, or where the package is going. */}
+      <div className="relative m-1.5 grid grid-cols-2 rounded-full bg-brand-ink/25 p-1" role="radiogroup" aria-label={t.contactsFor}>
+        <span
+          aria-hidden
+          className={`absolute inset-y-1 w-[calc(50%-4px)] rounded-full bg-white shadow transition-[inset-inline-start] duration-300 ease-[cubic-bezier(.3,1.3,.5,1)] ${
+            side === "here" ? "start-1" : "start-[calc(50%)]"
+          }`}
+        />
+        {([
+          ["here", from, t.yourIsland],
+          ["dest", to, t.destination],
+        ] as const).map(([v, isl, label]) => (
+          <button
+            key={v}
+            role="radio"
+            aria-checked={side === v}
+            disabled={!isl}
+            onClick={() => setSide(v)}
+            className={`relative z-10 flex min-w-0 flex-col items-center rounded-full px-2 py-1.5 transition-colors disabled:opacity-40 ${
+              side === v ? "text-brand" : "text-white"
+            }`}
+          >
+            <span className={`text-[10px] font-semibold uppercase tracking-wide ${side === v ? "text-brand/60" : "text-white/60"}`}>
+              {label}
+            </span>
+            <span className="flex max-w-full items-center gap-1 truncate text-[14px] font-bold">
+              {isl ? (
+                <>
+                  <span className="font-display" dir="ltr">{isl.code}</span>
+                  <span className="truncate">{nameOf(isl)}</span>
+                </>
+              ) : (
+                <span className="truncate font-medium opacity-80">{t.noDestination}</span>
+              )}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between px-1.5 pb-1.5" role="tablist">
         {CONTACT_TABS.map(({ kind: k, Icon }) => (
           <button
             key={k}
@@ -170,22 +238,29 @@ export function QuickContact() {
           </button>
         ))}
       </div>
-      <ul>
-        {CONTACTS[kind].map((c) => (
+      <ul key={`${island.id}-${kind}`} className="animate-[maas-in_.25s_ease-out]">
+        {contacts.map((c) => (
           <li key={c.name} className="flex items-center border-t-2 border-brand/60 px-3 py-2.5 text-white">
-            <div className="flex-1">
-              <div className="font-display text-sm font-bold uppercase tracking-wide">{c.name}</div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-display text-sm font-bold uppercase tracking-wide">{c.name}</div>
               <div className="font-display text-[28px] font-extrabold leading-none tracking-wide" dir="ltr">
                 {c.phone}
               </div>
             </div>
-            <a
-              href={`tel:${c.phone}`}
-              aria-label={`${t.call} ${c.name}`}
-              className="grid size-11 place-items-center rounded-full text-white/40 active:bg-white/10"
-            >
-              <Phone className="size-7 fill-white/30" />
-            </a>
+            {/^\d+$/.test(c.phone) ? (
+              <a
+                href={`tel:${c.phone}`}
+                aria-label={`${t.call} ${c.name}`}
+                className="grid size-11 place-items-center rounded-full text-white/40 active:bg-white/10"
+              >
+                <Phone className="size-7 fill-white/30" />
+              </a>
+            ) : (
+              // Placeholder number: nothing to dial.
+              <span aria-hidden className="grid size-11 place-items-center text-white/15">
+                <Phone className="size-7" />
+              </span>
+            )}
           </li>
         ))}
       </ul>

@@ -48,7 +48,7 @@ export type BoatStatus = "notNear" | "northHarbour" | "loading" | "atHarbour";
 const STATUSES: BoatStatus[] = ["notNear", "northHarbour", "loading", "atHarbour"];
 const TIMES = ["07:30", "10:00", "14:00", "16:30", "21:00"];
 
-function rng(seed: number) {
+export function rng(seed: number) {
   let s = seed >>> 0 || 1;
   return () => {
     s = (s * 1664525 + 1013904223) >>> 0;
@@ -97,23 +97,50 @@ export type ContactKind = "cargo" | "speedboat" | "ferry" | "shop";
 
 export const CONTACTS: Record<ContactKind, { name: string; phone: string }[]> = {
   cargo: [
-    { name: "Ferien", phone: "7512345" },
-    { name: "Zillion", phone: "7723456" },
-    { name: "Hulhu Cargo", phone: "9634567" },
-    { name: "Bodu Logistics", phone: "7745678" },
+    { name: "Ferien", phone: "7XXXXXX" },
+    { name: "Zillion", phone: "7XXXXXX" },
+    { name: "Hulhu Cargo", phone: "9XXXXXX" },
+    { name: "Bodu Logistics", phone: "7XXXXXX" },
   ],
   speedboat: [
-    { name: "Blue Wave", phone: "7781234" },
-    { name: "Atoll Express", phone: "9912345" },
+    { name: "Blue Wave", phone: "7XXXXXX" },
+    { name: "Atoll Express", phone: "9XXXXXX" },
   ],
   ferry: [
     { name: "MTCC Ferry", phone: "1650" },
-    { name: "Ulhiashi Dhoni", phone: "7798765" },
-    { name: "Sazee Transport", phone: "9987654" },
+    { name: "Ulhiashi Dhoni", phone: "7XXXXXX" },
+    { name: "Sazee Transport", phone: "9XXXXXX" },
   ],
   shop: [
-    { name: "Harbour Mart", phone: "3301234" },
-    { name: "Jetty Hardware", phone: "7654321" },
+    { name: "Harbour Mart", phone: "7XXXXXX" },
+    { name: "Jetty Hardware", phone: "7XXXXXX" },
   ],
 };
 
+
+// Per-island contacts (mock). Numbers are placeholders (7XXXXXX / 9XXXXXX)
+// except real public hotlines.
+// Malé keeps the hand-written list above; other
+// islands get a deterministic set so each island looks like its own.
+const CONTACT_NAMES: Record<ContactKind, string[]> = {
+  cargo: ["Ferien", "Zillion", "Bodu Logistics", "Raajje Cargo", "Atoll Movers", "Island Freight", "Dhoni Cargo"],
+  speedboat: ["Blue Wave", "Atoll Express", "Sea Link", "Fast Ferry", "Reef Runner"],
+  ferry: ["MTCC Ferry", "Ulhiashi Dhoni", "Sazee Transport", "Furamaa Dhoni", "Island Ferry"],
+  shop: ["Harbour Mart", "Jetty Hardware", "Bandaara Store", "Atoll Mart", "Fihaara"],
+};
+
+export function contactsFor(island: Island): Record<ContactKind, { name: string; phone: string }[]> {
+  if (island.atoll === "K" && ["Male", "Hulhumale", "Villimale"].includes(island.name_en)) return CONTACTS;
+  const r = rng(island.id * 4111 + 5);
+  const out = {} as Record<ContactKind, { name: string; phone: string }[]>;
+  for (const kind of Object.keys(CONTACT_NAMES) as ContactKind[]) {
+    const names = [...CONTACT_NAMES[kind]].sort(() => r() - 0.5);
+    const n = kind === "ferry" ? 2 : 1 + Math.floor(r() * 3);
+    out[kind] = names.slice(0, n).map((name) => ({
+      name: kind === "ferry" && name === "MTCC Ferry" ? name : `${name} ${island.name_en}`,
+      // Placeholders, never real-looking numbers, so mock data can't match a real person.
+      phone: name === "MTCC Ferry" ? "1650" : `${r() < 0.5 ? 7 : 9}XXXXXX`,
+    }));
+  }
+  return out;
+}
