@@ -8,3 +8,4 @@ weather/data/
 weather/.venv/
 weather/.tools/
 __pycache__/
+indexes/raw/

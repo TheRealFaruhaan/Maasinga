@@ -1,0 +1,25 @@
+{
+ "islands": 185,
+ "population": 236911,
+ "alerts": {
+  "PAX_ONE_BOAT": 27,
+  "PAX_NO_PUBLIC": 53,
+  "PAX_NO_REGULAR_PATH": 102,
+  "GOODS_ONE_BOAT": 40,
+  "GOODS_FEW_BOATS": 9,
+  "LOW_COVERAGE": 80,
+  "MAYBE_ROAD_LINKED": 5
+ },
+ "critical_boats": {
+  "passenger": 26,
+  "goods": 36
+ },
+ "residents_behind_critical_boats": {
+  "passenger": 39376,
+  "goods": 52644
+ },
+ "residents_PTI_below_30": 58521,
+ "residents_GTI_below_30": 80266,
+ "boat_level_unknown": 80,
+ "with_scheduled_ferry": 110
+}
