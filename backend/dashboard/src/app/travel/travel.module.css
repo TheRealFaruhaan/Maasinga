@@ -1,0 +1,247 @@
+/* Left column beside the map: three panels stacked, ending level with the map. */
+.stack {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+.stack > :last-child {
+  flex: 1;
+}
+
+/* The map row is as tall as the left column, and never shorter than this. */
+
+/* Route: From and To on two rows, a coloured end marker before each, the swap button centred on the right. */
+.route {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 44px;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 10px;
+}
+
+.route > div,
+.route :global(button[role="combobox"]) {
+  width: 100%;
+}
+
+.end {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.dotFrom,
+.dotTo {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dotFrom {
+  border: 3px solid var(--accent);
+}
+
+.dotTo {
+  background: var(--accent);
+}
+
+.swap {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s, transform 0.3s;
+}
+
+.swap:hover {
+  background: var(--accent);
+  color: var(--primary-ink);
+}
+
+.swap:active {
+  transform: rotate(180deg);
+}
+
+/* Sea: the wave height large, the sea state as a pill, and a three-band gauge with a marker. */
+.seaTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wave {
+  font-size: 44px;
+  line-height: 48px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.wave span {
+  margin-left: 4px;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--faint);
+}
+
+.waveLabel {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--faint);
+}
+
+.state {
+  height: 32px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.state.positive {
+  background: var(--pill-positive-bg);
+  color: var(--positive);
+}
+
+.state.warning {
+  background: var(--pill-warning-bg);
+  color: var(--warning);
+}
+
+.state.negative {
+  background: var(--pill-negative-bg);
+  color: var(--negative);
+}
+
+.gauge {
+  position: relative;
+  margin-top: 20px;
+}
+
+.bands {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  height: 10px;
+}
+
+.bands i {
+  display: block;
+  border-radius: 5px;
+}
+
+.bands .positive {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--positive) 35%, transparent), var(--positive));
+}
+
+.bands .warning {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--warning) 35%, transparent), var(--warning));
+}
+
+.bands .negative {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--negative) 35%, transparent), var(--negative));
+}
+
+.marker {
+  position: absolute;
+  top: -5px;
+  width: 20px;
+  height: 20px;
+  margin-left: -10px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 4px solid var(--text);
+  transition: left 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.bandLabels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--faint);
+}
+
+.bandLabels span:nth-child(2) {
+  text-align: center;
+}
+
+.bandLabels span:nth-child(3) {
+  text-align: right;
+}
+
+.waves {
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--muted);
+}
+
+.waves b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.note {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--faint);
+}
+
+.chip {
+  height: 32px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  background: var(--raised);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.chip svg {
+  color: currentColor;
+  opacity: 0.7;
+}
+
+.map {
+  position: relative;
+  flex: 1;
+  min-height: 480px;
+}
+
+.mapFill {
+  position: absolute;
+  inset: 0;
+}
+
+@media (max-width: 1200px) {
+  .stack {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 900px) {
+  .map {
+    min-height: 520px;
+  }
+}

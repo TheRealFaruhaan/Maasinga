@@ -1,0 +1,75 @@
+.map {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 620px;
+}
+
+.mapWrap {
+  position: relative;
+  flex: 1;
+  min-height: 620px;
+}
+
+/* Right column beside the map: two panels stacked, ending level with the map. */
+.stack {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+.stack > * {
+  flex: 1;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.table th {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--faint);
+  text-align: left;
+  padding: 0 0 10px;
+}
+
+.table td {
+  height: 46px;
+  border-top: 1px solid var(--rule);
+}
+
+.table th:global(.num),
+.table td:global(.num) {
+  text-align: right;
+}
+
+.note {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--faint);
+}
+
+@media (max-width: 1200px) {
+  .stack {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 900px) {
+  .map,
+  .mapWrap {
+    min-height: 560px;
+  }
+}
+
+.boatName {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

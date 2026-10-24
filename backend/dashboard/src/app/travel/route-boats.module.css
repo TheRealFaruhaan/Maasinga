@@ -1,0 +1,109 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.table th {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--faint);
+  text-align: left;
+  padding: 0 0 10px;
+}
+
+.table td {
+  height: 56px;
+  border-top: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+.table th,
+.table td {
+  padding-right: 24px;
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: 0;
+}
+
+.table th:global(.num),
+.table td:global(.num) {
+  text-align: right;
+}
+
+/* Each boat type keeps its colour (same as the harbour page). */
+.table tr[data-type="fast"] {
+  --c: var(--type-fast);
+  --c-bg: var(--type-fast-bg);
+}
+
+.table tr[data-type="dhoni"] {
+  --c: var(--type-dhoni);
+  --c-bg: var(--type-dhoni-bg);
+}
+
+.table tr[data-type="slow"] {
+  --c: var(--type-slow);
+  --c-bg: var(--type-slow-bg);
+}
+
+.boat {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.boat b {
+  max-width: 220px;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.disc {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-bg);
+  color: var(--c);
+}
+
+.type {
+  color: var(--c);
+  font-size: 15px;
+}
+
+/* Trips: the count, a bar against the busiest boat, and its share of all trips on the route. */
+.trips {
+  display: grid;
+  grid-template-columns: 40px minmax(80px, 260px) 44px;
+  align-items: center;
+  gap: 12px;
+}
+
+.track {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--raised);
+}
+
+.fill {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 35%, transparent), var(--c));
+  transform-origin: left;
+  animation: grow-x 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.share {
+  font-size: 14px;
+  color: var(--faint);
+}

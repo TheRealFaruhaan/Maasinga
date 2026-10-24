@@ -1,0 +1,209 @@
+/* One row per boat on a shared grid, so the header and every row line up. */
+.row {
+  display: grid;
+  grid-template-columns: 172px 52px 88px minmax(200px, 1fr) 92px 80px 136px 124px;
+  align-items: center;
+  column-gap: 18px;
+}
+
+.head {
+  white-space: nowrap;
+  padding: 0 12px 14px;
+  font-size: 14px;
+  color: var(--faint);
+  border-bottom: 1px solid var(--rule);
+}
+
+.r {
+  text-align: right;
+}
+
+/* Calendar header on one line: the sortable label, then the date range at the far end. */
+.cal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.calScale {
+  font-size: 14px;
+}
+
+.scroll {
+  overflow-x: auto;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+
+@media (min-width: 701px) {
+  .scroll > * {
+    min-width: 1080px;
+  }
+}
+
+.list {
+  list-style: none;
+}
+
+.list .row {
+  min-height: 72px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 12px;
+  font-size: 16px;
+  transition: background 0.15s;
+}
+
+.list .row:hover {
+  background: var(--hover);
+}
+
+/* Each boat type carries its own colour and tint. */
+.row[data-type="fast"] {
+  --c: var(--type-fast);
+  --c-bg: var(--type-fast-bg);
+}
+
+.row[data-type="dhoni"] {
+  --c: var(--type-dhoni);
+  --c-bg: var(--type-dhoni-bg);
+}
+
+.row[data-type="slow"] {
+  --c: var(--type-slow);
+  --c-bg: var(--type-slow-bg);
+}
+
+.boat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.disc {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-bg);
+  color: var(--c);
+}
+
+.id {
+  display: block;
+  max-width: 120px;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 22px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.type {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--c);
+}
+
+.big {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.dim {
+  color: var(--faint);
+}
+
+/* August calendar: one cell per day, filled when the boat stayed that day. */
+.days {
+  display: grid;
+  grid-template-columns: repeat(31, 1fr);
+  gap: 3px;
+  height: 26px;
+}
+
+.days i {
+  display: block;
+  border-radius: 3px;
+}
+
+.dayOn {
+  background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 55%, transparent));
+}
+
+.dayOff {
+  background: var(--raised);
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.track {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--raised);
+}
+
+.fill {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 35%, transparent), var(--c));
+}
+
+.from {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.from svg {
+  flex: none;
+  color: var(--faint);
+}
+
+
+@media (max-width: 1100px) {
+  .row {
+    grid-template-columns: 180px 56px 84px minmax(180px, 1fr) 96px 80px 130px;
+  }
+  .row > :last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .head {
+    display: none;
+  }
+  .list .row {
+    grid-template-columns: 1fr auto;
+    row-gap: 10px;
+    padding: 14px 8px;
+  }
+  .list .row > :nth-child(3),
+  .list .row > :nth-child(5),
+  .list .row > :nth-child(6),
+  .list .row > :nth-child(8) {
+    display: none;
+  }
+  .days,
+  .total {
+    grid-column: 1 / -1;
+  }
+}

@@ -1,0 +1,108 @@
+# Maasinga
+
+Sea travel data for the Maldives, built from the GPS of 1,776 boats.
+
+## The problem
+
+People travel between islands every day by speedboat, dhoni and ferry: to hospital, work, school and shops. Schedules live in Viber groups and in people's heads. Councils, police and atoll offices each see only their own area, and decision-makers hear only after an incident. Nobody can see where the sea is rough right now, which crossings have no phone signal, or which islands get too few boats.
+
+## What Maasinga does
+
+Maasinga reads the boats themselves. Many boats already carry a FollowMe GPS tracker, and that data answers these questions without new hardware or new reporting.
+
+| Page | For | Question it answers | Key result (August 2025) |
+|---|---|---|---|
+| Overview `/` | Everyone | What are the main findings? | One number per topic |
+| Travel `/travel` | Passengers | When do boats leave, is tomorrow's sea safe, is there signal on the way? | Usual departures for 654 routes from 68,840 detected trips |
+| Sea state `/sea` | Coast Guard, Met service | How rough is the sea, read from boat speed? | Speedboat pace against wave height: r = -0.89 (North), -0.76 (Male and Ari) |
+| Safety `/safety` | Coast Guard, Transport Authority | Who still crosses open sea in rough weather? | Crossings fell only 22% on rough days; 29% of speedboats kept full speed |
+| Signal `/signal` | Telecom companies, Coast Guard | Where do boats lose mobile signal? | 73 km with no signal between Gaafu Alif and Laamu, crossed by 69 boats |
+| Access `/access` | Island councils, Ministry of Transport | Which islands get too few boats for their population? | Travel Index: boat departures a week per 1,000 residents (Census 2022) |
+| Harbour `/harbour` | MPL, Male City Council | Which boats use Male North Harbour, from where, and how long they stay? | 119 boats stayed in August, 98 of them dhonis or ferries; a dhoni typically stays 6 h |
+| Method `/method` | Judges | Data, method and limits | |
+
+### The new method: the Sea Pace Index
+
+Every speedboat has its own normal cruising speed (its median speed when moving over 15 knots). The Sea Pace Index for a region and hour is the average of each boat's speed divided by its own normal speed. When waves rise, the index falls: about 13% slower per extra metre of wave around Male. So 790 speedboats work as a network of free wave sensors, and the same model turns a wave forecast into a go, take care or avoid rating for each route.
+
+## Folders
+
+- `pipeline/`: Python and DuckDB scripts that turn the raw data into the 16 data files the app and the API use.
+- `api/`: FastAPI and PostgreSQL. `seed.py` loads the data files into the database (tables in `schema.sql`); the API serves them (docs at `/docs`).
+- `dashboard/`: the Maasinga dashboard (Next.js). Reads the API, and falls back to its own copy of the data files.
+- `deploy/`: Docker Compose for the database, API and dashboard.
+- `docs/`: `SETUP.md` (run, deploy, API), `DATA.md` (every data file, field by field) and `API.md` (every endpoint with example responses, for apps that use the API).
+Everything above lives in this `backend/` folder; run the commands below from here. The team's public app
+and data collectors (`web/`, `collector/`, `weather/`) are separate folders at the repo root.
+
+## How to run
+
+With Docker (database, API and dashboard in one command):
+
+```bash
+cd deploy
+cp .env.example .env      # set POSTGRES_PASSWORD
+docker compose up -d --build
+# dashboard: http://localhost:3000   API: http://localhost:8000/docs
+```
+
+Full step-by-step guide (Docker, without Docker, deploying on a server, rebuilding the data, every setting,
+troubleshooting): [docs/SETUP.md](docs/SETUP.md). Each part has a commented `.env.example`:
+`deploy/.env.example` (Docker), `api/.env.example` and `dashboard/.env.example` (without Docker).
+
+The 16 processed data files in `dashboard/public/data` are committed, so nothing needs the raw organiser data (1.8 GB, not committed) unless you change the analysis.
+
+The app works offline except the live wave forecast on the Travel page (Open-Meteo); without internet it says so and still shows the August data.
+
+## Pipeline
+
+| Step | File | Output |
+|---|---|---|
+| Clean GPS pings, classify boats by speed | `pipeline/01_ingest.py` | `data/work/pings.parquet` |
+| Weather, waves and rain from the team export in `weather/` (cached) | `pipeline/02_weather.py` | `pipeline/reference/weather/*.json` |
+| Sea Pace Index against waves | `pipeline/03_sea_sensor.py` | `sea.json` |
+| Stops, places and trips | `pipeline/04_trips.py` | `data/work/*.parquet` |
+| Routes, timetables, typical paths, Travel Index | `pipeline/05_network.py` | `network.json`, `paths.json` |
+| Rough-sea crossings, full speed in rough sea | `pipeline/06_safety.py` | `safety.json` |
+| Signal dead zones | `pipeline/07_signal.py` | `signal.json` |
+| Boat paths for the replay | `pipeline/08_replay.py` | `replay-calm.json`, `replay-rough.json` |
+| Taxi requests with no driver | `pipeline/09_taxi.py` | `taxi.json` |
+| Boats in the North Harbour area (team-drawn outline) | `pipeline/analysis/north_harbour.py` | `harbour.json` |
+| Boat display names for the demo (team name list, best guesses) | `pipeline/10_boat_names.py` | `boat-names.json` |
+| App data for the API: every trip, boats, weather, island links to the web app | `pipeline/11_app_data.py` | `trips.json`, `boats.json`, `weather.json`, `places-extra.json` |
+| Offline basemap from OpenStreetMap | `pipeline/basemap/build_basemap.py` | `land.json`, `reefs.json`, `resorts.json` |
+
+Each script starts with a short note on its method and thresholds.
+
+## Data sources
+
+| Source | Used for | Owner and licence |
+|---|---|---|
+| FollowMe boat GPS, August 2025 (17.4M positions, 1,776 trackers) | Everything at sea | Organiser dataset |
+| Avas rides Aug to Sep 2026 and car fare matrix | Explored in `pipeline/09_taxi.py`, not shown in the app | Organiser dataset |
+| MACL airport traffic 2012 to Jul 2026 | Explored in `pipeline/09_taxi.py`, not shown in the app | Organiser dataset |
+| MTCC bus and ferry | Not used: its README says the passenger figures are randomly generated | Organiser dataset |
+| Team weather collector (`weather/` at the repo root): ERA5 wind gusts and ERA5-Ocean waves via Open-Meteo | Waves and wind gusts, August 2025 | Open-Meteo, CC BY 4.0 (ECMWF Copernicus data) |
+| NASA GPM IMERG daily rain (same export) | Rain per day on the Sea page | NASA, public |
+| Open-Meteo Marine API | Live wave forecast on Plan a trip | Open-Meteo, CC BY 4.0 |
+| Maldives Bureau of Statistics, Census 2022 Table P3 | Island population | MBS, public |
+| OpenStreetMap | Island positions, land, reefs, resort names | OpenStreetMap contributors, ODbL |
+
+Full URLs and caveats: `pipeline/reference/SOURCES.md`.
+
+No personal data is published. Tracker IDs are replaced by a short hash.
+
+## Limits
+
+- One month of boat data (August 2025, southwest monsoon). The model needs other seasons before it is used for warnings.
+- Boat type is inferred from speed (speedboat, dhoni or ferry, slow boat).
+- Only boats with a FollowMe tracker are counted. The Travel Index is relative, not a full count of all boats. Islands linked by road or air (Addu, Fuvahmulah, Laamu Gan) score low for that reason.
+- Weather is the worst value over 5 to 8 sea points per region (0.25 degree grid), not the exact place of each boat.
+- A correlation is not proof of cause. The South shows the weakest link (r = -0.39) because its boats run inside wide, sheltered lagoons.
+- Stops at sea were tested as a breakdown signal and rejected: they are 2.6 times more common on calm days, so most are leisure stops.
+
+## Tools
+
+Python, DuckDB, Next.js 16, React 19, deck.gl 9, d3-scale, Radix UI.
+
+AI tools: Claude Code (Anthropic) was used to write the pipeline and web code, to find and check public reference data (census, OpenStreetMap), and to check results. Every number in the app comes from the pipeline scripts in this repository, and the team reviewed the output.

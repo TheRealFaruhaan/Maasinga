@@ -1,0 +1,125 @@
+.map {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 620px;
+}
+
+.mapWrap {
+  position: relative;
+  flex: 1;
+  min-height: 620px;
+}
+
+.overlayBottom {
+  position: absolute;
+  left: 16px;
+  bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--overlay);
+  border-radius: 16px;
+  padding: 10px 18px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.ramp {
+  width: 200px;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--ramp-mid), var(--warning) 33%, var(--negative)); /* taste-skill-ignore: key for a continuous map colour scale */
+}
+
+/* Right column beside the map: two panels stacked, ending level with the map. */
+.stack {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+.stack > :first-child {
+  flex: 1;
+}
+
+/* A zone name in the list: click to fly the map there. */
+.zoneBtn {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.zoneBtn:hover,
+.zoneBtn[aria-pressed="true"] {
+  color: var(--accent);
+}
+
+.acts {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.acts li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.acts svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--accent);
+}
+
+.acts b {
+  font-weight: 600;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.table th {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--faint);
+  text-align: left;
+  padding: 0 0 10px;
+}
+
+.table td {
+  height: 46px;
+  border-top: 1px solid var(--rule);
+}
+
+.table th:global(.num),
+.table td:global(.num) {
+  text-align: right;
+}
+
+@media (max-width: 1200px) {
+  .stack {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 900px) {
+  .map,
+  .mapWrap {
+    min-height: 560px;
+  }
+  .ramp {
+    width: 120px;
+  }
+}

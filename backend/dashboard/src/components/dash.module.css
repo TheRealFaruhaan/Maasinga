@@ -1,0 +1,260 @@
+/* Dashboard frame: content beside the fixed sidebar, a 12-column grid, one 16px gap. */
+.dash {
+  padding: 24px 28px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  max-width: 1560px;
+  margin: 0 auto;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 26px;
+  line-height: 32px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.sub {
+  margin-top: 2px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.period {
+  height: 36px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.kpiTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kpiIcon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--k);
+  background: color-mix(in srgb, var(--k) 13%, var(--surface));
+}
+
+.kpiLabel {
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--muted);
+}
+
+.kpiValue {
+  margin-top: 12px;
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.kpiUnit {
+  margin-left: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--faint);
+  letter-spacing: 0;
+}
+
+.kpiSub {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--faint);
+}
+
+.spark {
+  margin-top: 8px;
+  width: 100%;
+  height: 32px;
+  display: block;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gap);
+  align-items: stretch;
+}
+
+.panel {
+  grid-column: span var(--span);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.flush {
+  padding: 0;
+  overflow: hidden;
+}
+
+.flush .panelHead {
+  padding: 16px 20px 12px;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  min-height: 32px;
+}
+
+.flush .panelHead {
+  margin-bottom: 0;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+}
+
+.panelTitle svg {
+  color: var(--faint);
+}
+
+.panelActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panelBody {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+@media (max-width: 1300px) {
+  .kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1200px) {
+  .panel {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 960px) {
+  .dash {
+    padding: 16px 14px 40px;
+  }
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .title {
+    font-size: 22px;
+  }
+  .kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Entrance: KPI cards first, left to right, then the panels. */
+.head {
+  animation: fade-in 0.4s ease-out both;
+}
+
+.kpi {
+  animation: fade-up 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.kpi:nth-child(1) { animation-delay: 40ms; }
+.kpi:nth-child(2) { animation-delay: 90ms; }
+.kpi:nth-child(3) { animation-delay: 140ms; }
+.kpi:nth-child(4) { animation-delay: 190ms; }
+.kpi:nth-child(5) { animation-delay: 240ms; }
+.kpi:nth-child(6) { animation-delay: 290ms; }
+
+.grid > * {
+  animation: fade-up 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: 300ms;
+}
+
+.grid > :nth-child(2) { animation-delay: 380ms; }
+.grid > :nth-child(3) { animation-delay: 460ms; }
+.grid > :nth-child(4) { animation-delay: 520ms; }
+.grid > :nth-child(5) { animation-delay: 580ms; }
+.grid > :nth-child(n + 6) { animation-delay: 640ms; }
+
+.kpi,
+.panel {
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.kpi:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--k) 40%, var(--border));
+}
+
+.spark path {
+  stroke-dasharray: 1;
+  animation: draw 1.2s 0.4s ease-out both;
+}
+
+.spark path:first-of-type {
+  stroke-dasharray: none;
+  animation: fade-in 1s 0.6s ease-out both;
+}

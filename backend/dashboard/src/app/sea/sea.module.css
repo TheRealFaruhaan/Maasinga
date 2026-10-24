@@ -1,0 +1,166 @@
+.mapWrap {
+  position: relative;
+  flex: 1;
+  min-height: 620px;
+}
+
+.map {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 620px;
+}
+
+.stack {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .stack {
+    grid-column: span 12;
+  }
+}
+
+.dayBar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 4px 20px 14px;
+}
+
+.dayLabel {
+  font-size: 20px;
+  font-weight: 600;
+  width: 64px;
+  flex: none;
+}
+
+.dayMap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 740px;
+}
+
+.overlayTop {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+.areaSwitch {
+  display: inline-flex;
+  background: var(--overlay);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.areaBtn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--nav);
+  transition: background 0.15s, color 0.15s;
+}
+
+.areaBtn:hover {
+  color: var(--text);
+}
+
+.areaBtn[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--primary-ink);
+}
+
+.overlayBottom {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--overlay);
+  border-radius: 16px;
+  padding: 10px 18px 10px 10px;
+}
+
+.play {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--text);
+  color: var(--primary-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  transition: transform 0.15s;
+}
+
+.play:active {
+  transform: scale(0.94);
+}
+
+.clock {
+  font-size: 24px;
+  font-weight: 500;
+  width: 72px;
+  flex: none;
+}
+
+.classLegend {
+  display: flex;
+  gap: 18px;
+  font-size: 15px;
+  color: var(--muted);
+  flex: none;
+}
+
+.classLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.classLegend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.paceLegend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: var(--muted);
+  padding-left: 8px;
+  height: 44px;
+}
+
+.paceRamp {
+  width: 200px;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--negative), var(--warning), var(--ramp-mid), var(--accent)); /* taste-skill-ignore: key for a continuous map colour scale */
+}
+
+@media (max-width: 900px) {
+  .mapWrap {
+    min-height: 560px;
+  }
+  .dayMap {
+    min-height: 520px;
+  }
+  .classLegend {
+    display: none;
+  }
+}

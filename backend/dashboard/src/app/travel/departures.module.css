@@ -1,0 +1,104 @@
+/*
+ * Departures: four parts of the day in equal columns, split by thin dividers.
+ * Each part has a small sky swatch (lighter in the morning, deepest at night, one data blue);
+ * each time is its own chip so the eye can count them.
+ */
+.parts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.part {
+  padding: 2px 20px 4px;
+  border-left: 1px solid var(--rule);
+}
+
+.part:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.part:last-child {
+  padding-right: 0;
+}
+
+.partName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.partName::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) var(--sky), var(--raised));
+}
+
+.part[data-part="0"] {
+  --sky: 30%;
+}
+
+.part[data-part="1"] {
+  --sky: 55%;
+}
+
+.part[data-part="2"] {
+  --sky: 78%;
+}
+
+.part[data-part="3"] {
+  --sky: 100%;
+}
+
+.times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.time {
+  height: 34px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  background: var(--raised);
+  font-size: 16px;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s, opacity 0.2s;
+}
+
+/* The next boat today. */
+.next {
+  background: var(--accent);
+  color: var(--primary-ink);
+}
+
+.past {
+  opacity: 0.35;
+}
+
+.none {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  color: var(--faint);
+}
+
+@media (max-width: 900px) {
+  .parts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 16px;
+  }
+  .part:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+}

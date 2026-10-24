@@ -1,0 +1,197 @@
+.map {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 620px;
+}
+
+/* Right column beside the map: two panels stacked, ending level with the map. */
+.stack {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+.stack > * {
+  flex: 1;
+}
+
+@media (max-width: 1200px) {
+  .stack {
+    grid-column: span 12;
+  }
+}
+
+/* By boat type: icon disc, name and count, median stay on the right. */
+.types {
+  list-style: none;
+}
+
+.typeRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.typeRow:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.typeRow[data-type="fast"] {
+  --c: var(--type-fast);
+  --c-bg: var(--type-fast-bg);
+}
+
+.typeRow[data-type="dhoni"] {
+  --c: var(--type-dhoni);
+  --c-bg: var(--type-dhoni-bg);
+}
+
+.typeRow[data-type="slow"] {
+  --c: var(--type-slow);
+  --c-bg: var(--type-slow-bg);
+}
+
+.disc {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-bg);
+  color: var(--c);
+}
+
+.typeName {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.typeSub {
+  display: block;
+  font-size: 14px;
+  color: var(--faint);
+}
+
+.typeStay {
+  margin-left: auto;
+  text-align: right;
+}
+
+.typeStay b {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--c);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.table th {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--faint);
+  text-align: left;
+  padding: 0 0 12px;
+}
+
+.table td {
+  height: 52px;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.table th:global(.num),
+.table td:global(.num) {
+  text-align: right;
+  padding-left: 16px;
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-left: 32px;
+}
+
+.id {
+  font-weight: 500;
+}
+
+/* Total time inside: the figure, with a thin bar under it scaled to the longest total in view. */
+.timeHead {
+  padding-left: 32px !important;
+  width: 180px;
+}
+
+.time {
+  padding-left: 32px !important;
+  width: 180px;
+  vertical-align: middle;
+}
+
+.time span {
+  display: block;
+  line-height: 20px;
+}
+
+.timeTrack {
+  display: block;
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: var(--raised);
+}
+
+.timeBar {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.id {
+  padding-right: 20px !important;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.more {
+  align-self: flex-start;
+  margin-top: 20px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--raised);
+  font-size: 15px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.more:hover {
+  background: var(--control-hover);
+}
+
+@media (max-width: 900px) {
+  .map {
+    min-height: 560px;
+  }
+  .table th:nth-child(2),
+  .table td:nth-child(2),
+  .table th:nth-child(6),
+  .table td:nth-child(6) {
+    display: none;
+  }
+}

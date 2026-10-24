@@ -1,0 +1,19 @@
+# Override for a server that already runs Traefik on a shared Docker network (here Dokploy's
+# "dokploy-network"). The API and dashboard publish no host ports; Traefik reaches them by
+# container name (see traefik-maasinga.yml). Use with:
+#   docker compose -p maasinga -f docker-compose.yml -f docker-compose.server.yml up -d --build
+services:
+  api:
+    container_name: maasinga-api
+    ports: !reset []
+    networks: [default, edge]
+
+  dashboard:
+    container_name: maasinga-dashboard
+    ports: !reset []
+    networks: [default, edge]
+
+networks:
+  edge:
+    external: true
+    name: dokploy-network

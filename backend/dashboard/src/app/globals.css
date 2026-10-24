@@ -1,0 +1,284 @@
+/* Maasinga: flat surfaces, elevation by lightness only, colour only on data. :root holds the light theme; html[data-theme="dark"] (the default, set in layout.tsx) switches to dark. */
+:root {
+  color-scheme: light;
+  --ground: #f4f5f7;
+  --surface: #ffffff;
+  --raised: #eef0f3;
+  --border: #e4e7eb;
+  --rule: #e8ebee;
+  --control: #cfd4da;
+  --text: #111418;
+  --muted: #4b5563;
+  --faint: #5f6773;
+
+  /* One data hue: deep lagoon blue. Status colours only for sea risk and failures. */
+  --accent: #1677c9;
+  --accent-soft: #e2effa;
+  --positive: #1f8a4c;
+  --warning: #b9770e;
+  --negative: #c9354d;
+  --pill-positive-bg: #ddf3e5;
+  --pill-warning-bg: #fbefd9;
+  --pill-negative-bg: #fbe3e7;
+  --grid: #e6e9ed;
+
+  --nav: #5b636e;
+  --hover: #f7f8fa;
+  --control-hover: #e3e7eb;
+  --select-hl: #e9ecf0;
+  --overlay: rgba(255, 255, 255, 0.94);
+  --shadow: rgba(16, 24, 40, 0.16);
+  --primary-ink: #ffffff;
+  --bar-rest: #d4d9df;
+  --cursor: #c2c8cf;
+  --ramp-mid: #c3c9cf;
+  --map-sea: #e4edf3;
+  --plan-hover: #d2e6f7;
+  --plan-text: #2b5677;
+
+  /* Boat types: one colour each, with a pale tint for icon discs. */
+  --type-fast: #1677c9;
+  --type-fast-bg: #e2effa;
+  --type-dhoni: #0d8a79;
+  --type-dhoni-bg: #dcf2ee;
+  --type-slow: #8a6a2f;
+  --type-slow-bg: #f2ebde;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0c0d0f;
+  --surface: #15171a;
+  --raised: #23262a;
+  --border: #1d2023;
+  --rule: #1d2023;
+  --control: #44474c;
+  --text: #ffffff;
+  --muted: #b4b4b4;
+  --faint: #949494;
+
+  --accent: #4cb3f0;
+  --accent-soft: #1b3445;
+  --positive: #3fc07a;
+  --warning: #e5a93b;
+  --negative: #e5566f;
+  --pill-positive-bg: #172a1d;
+  --pill-warning-bg: #2b2414;
+  --pill-negative-bg: #2c1a20;
+  --grid: #26292d;
+
+  --nav: #bbbbbb;
+  --hover: #1c1f23;
+  --control-hover: #2c3035;
+  --select-hl: #33373c;
+  --overlay: rgba(21, 23, 26, 0.94);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --primary-ink: #000000;
+  --bar-rest: #3a3e44;
+  --cursor: #4a4e54;
+  --ramp-mid: #5a6066;
+  --map-sea: transparent;
+  --plan-hover: #21405a;
+  --plan-text: #cfe3f1;
+
+  --type-fast: #4cb3f0;
+  --type-fast-bg: #1b3445;
+  --type-dhoni: #3cc4b0;
+  --type-dhoni-bg: #163631;
+  --type-slow: #c9a36a;
+  --type-slow-bg: #33291a;
+}
+
+:root {
+  --radius-card: 24px;
+  --radius-inner: 12px;
+  --radius-control: 999px;
+  --gap: 16px;
+  --pad: 28px;
+  --control-height: 40px;
+  --column: 1280px;
+  --sidebar: 248px;
+
+  --fs-title: 32px;
+  --fs-section: 18px;
+  --fs-kpi: 32px;
+  --fs-lead: 48px;
+  --fs-body: 16px;
+  --fs-small: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: var(--fs-body);
+  line-height: 24px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Content area beside the fixed sidebar. */
+.shell-main {
+  margin-left: var(--sidebar);
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .shell-main {
+    margin-left: 0;
+  }
+}
+
+/* Table column headers always stay on one line. */
+th,
+th * {
+  white-space: nowrap;
+}
+
+/* Motion: shared entrances. Everything keeps its content if motion is reduced (see the rule above). */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Table rows arrive in a short cascade when a page, sort or filter shows new rows. */
+tbody tr {
+  animation: fade-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+tbody tr:nth-child(2) { animation-delay: 30ms; }
+tbody tr:nth-child(3) { animation-delay: 60ms; }
+tbody tr:nth-child(4) { animation-delay: 90ms; }
+tbody tr:nth-child(5) { animation-delay: 120ms; }
+tbody tr:nth-child(6) { animation-delay: 150ms; }
+tbody tr:nth-child(7) { animation-delay: 180ms; }
+tbody tr:nth-child(8) { animation-delay: 210ms; }
+tbody tr:nth-child(9) { animation-delay: 240ms; }
+tbody tr:nth-child(10) { animation-delay: 270ms; }
+tbody tr:nth-child(n + 11) { animation-delay: 300ms; }
+
+/* Theme switch: a soft cross-dissolve of the whole page, old theme out, new theme in. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  animation: theme-out 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: theme-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes theme-out {
+  to {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+@keyframes theme-in {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+/* Fallback for browsers without View Transitions: colours cross-fade. */
+html.theme-fade,
+html.theme-fade * {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease, fill 0.4s ease, stroke 0.4s ease !important;
+}

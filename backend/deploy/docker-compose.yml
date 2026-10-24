@@ -1,0 +1,55 @@
+# Maasinga: database, data loader, API and dashboard. Run from this folder:
+#   cp .env.example .env    (then edit it)
+#   docker compose up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: maasinga
+      POSTGRES_USER: maasinga
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maasinga -d maasinga"]
+      interval: 5s
+      retries: 20
+
+  # Loads the 11 data files from dashboard/public/data into Postgres, then exits.
+  seed:
+    build: ../api
+    command: ["python", "seed.py", "/data"]
+    environment:
+      DATABASE_URL: postgresql://maasinga:${POSTGRES_PASSWORD}@db:5432/maasinga
+    volumes:
+      - ../dashboard/public/data:/data:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: ../api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://maasinga:${POSTGRES_PASSWORD}@db:5432/maasinga
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+
+  dashboard:
+    build:
+      context: ../dashboard
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
+    restart: unless-stopped
+    ports:
+      - "${DASHBOARD_PORT:-3000}:3000"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

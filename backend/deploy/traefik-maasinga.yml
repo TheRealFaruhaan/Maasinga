@@ -1,0 +1,26 @@
+# Traefik routes for Maasinga (file provider). On a Dokploy server, copy to
+# /etc/dokploy/traefik/dynamic/maasinga.yml; Traefik picks it up without a restart.
+# HTTPS is handled in front (Cloudflare Tunnel), so the routes use the plain "web" entrypoint.
+http:
+  routers:
+    maasinga-dashboard:
+      rule: Host(`maasinga.devoup.com`)
+      service: maasinga-dashboard
+      entryPoints:
+        - web
+    maasinga-api:
+      rule: Host(`maasinga-api.devoup.com`)
+      service: maasinga-api
+      entryPoints:
+        - web
+  services:
+    maasinga-dashboard:
+      loadBalancer:
+        servers:
+          - url: http://maasinga-dashboard:3000
+        passHostHeader: true
+    maasinga-api:
+      loadBalancer:
+        servers:
+          - url: http://maasinga-api:8000
+        passHostHeader: true

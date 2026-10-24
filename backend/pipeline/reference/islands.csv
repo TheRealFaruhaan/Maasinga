@@ -1,0 +1,191 @@
+island_code,atoll,island,lat,lon,population_2022,pop_source,coord_source
+MLE.Male,Male City,Male,4.174246,73.509521,137238,"MBS Census 2022 Table P3, total resident population, sum of wards Henveiru+Galolhu+Machchangolhi+Maafannu",osm_polygon
+MLE.Hulhumale,Male City,Hulhumale,4.223784,73.542171,65714,"MBS Census 2022 Table P3, total resident population, Phase 1 (35859) + Phase 2 (29855)",osm_polygon
+MLE.Vilimale,Male City,Vilimale,4.173247,73.485212,6755,"MBS Census 2022 Table P3, total resident population",osm_polygon
+MLE.Hulhule,Male City,Hulhule,4.193345,73.530705,802,"MBS Census 2022 Table P3, total resident population (airport island)",osm_polygon
+HA.Baarah,Haa Alif,Baarah,6.816405,73.209126,1141,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Dhidhdhoo,Haa Alif,Dhidhdhoo,6.886925,73.109653,3412,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Filladhoo,Haa Alif,Filladhoo,6.896009,73.235158,559,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Hoarafushi,Haa Alif,Hoarafushi,6.978894,72.895355,1841,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Ihavandhoo,Haa Alif,Ihavandhoo,6.954614,72.925983,2873,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Kelaa,Haa Alif,Kelaa,6.954726,73.216111,1115,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Maarandhoo,Haa Alif,Maarandhoo,6.852705,72.984145,668,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Mulhadhoo,Haa Alif,Mulhadhoo,7.012370,72.998061,286,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Muraidhoo,Haa Alif,Muraidhoo,6.837924,73.167217,534,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Thakandhoo,Haa Alif,Thakandhoo,6.844141,72.995500,279,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Thuraakunu,Haa Alif,Thuraakunu,7.104316,72.899219,427,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Uligamu,Haa Alif,Uligamu,7.082042,72.927360,400,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Utheemu,Haa Alif,Utheemu,6.834869,73.112636,612,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HA.Vashafaru,Haa Alif,Vashafaru,6.897545,73.160966,476,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Finey,Haa Dhaalu,Finey,6.745924,73.053268,409,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Hanimaadhoo,Haa Dhaalu,Hanimaadhoo,6.756057,73.173043,2664,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Hirimaradhoo,Haa Dhaalu,Hirimaradhoo,6.724809,73.024107,293,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Kulhudhuffushi,Haa Dhaalu,Kulhudhuffushi,6.623224,73.069120,10131,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Kumundhoo,Haa Dhaalu,Kumundhoo,6.572105,73.052348,997,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Kuribi,Haa Dhaalu,Kuribi,6.665651,72.996638,492,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Makunudhoo,Haa Dhaalu,Makunudhoo,6.409565,72.705156,1265,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Naivaadhoo,Haa Dhaalu,Naivaadhoo,6.746895,72.934959,495,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Nellaidhoo,Haa Dhaalu,Nellaidhoo,6.714980,72.946815,1038,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Neykurendhoo,Haa Dhaalu,Neykurendhoo,6.543061,72.979671,641,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Nolhivaramu,Haa Dhaalu,Nolhivaramu,6.662401,73.082238,1985,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Nolhivaranfaru,Haa Dhaalu,Nolhivaranfaru,6.697365,73.120057,1254,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+HDh.Vaikaradhoo,Haa Dhaalu,Vaikaradhoo,6.549730,72.953229,776,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Bilehffahi,Shaviyani,Bilehffahi,6.337853,72.974963,502,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Feevah,Shaviyani,Feevah,6.349188,73.209483,694,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Feydhoo,Shaviyani,Feydhoo,6.360539,73.048798,854,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Foakaidhoo,Shaviyani,Foakaidhoo,6.326627,73.149289,1571,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Funadhoo,Shaviyani,Funadhoo,6.152442,73.289686,2255,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Goidhoo,Shaviyani,Goidhoo,6.430069,72.930036,592,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Kaditheemu,Shaviyani,Kaditheemu,6.440347,72.916531,1193,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Komandoo,Shaviyani,Komandoo,6.054018,73.054172,921,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Lhaimagu,Shaviyani,Lhaimagu,6.164059,73.251394,684,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Maaugoodhoo,Shaviyani,Maaugoodhoo,6.036785,73.283812,944,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Maroshi,Shaviyani,Maroshi,6.209563,73.061314,479,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Milandhoo,Shaviyani,Milandhoo,6.286324,73.243905,2094,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Narudhoo,Shaviyani,Narudhoo,6.264324,73.218065,544,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Sh.Noomaraa,Shaviyani,Noomaraa,6.434130,73.069183,371,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Fodhdhoo,Noonu,Fodhdhoo,5.743743,73.216013,345,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Henbadhoo,Noonu,Henbadhoo,5.967609,73.393055,638,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Holhudhoo,Noonu,Holhudhoo,5.754852,73.263002,1428,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Kedhikulhudhoo,Noonu,Kedhikulhudhoo,5.952551,73.415939,1556,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Kudafari,Noonu,Kudafari,5.882866,73.400138,628,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Landhoo,Noonu,Landhoo,5.881552,73.466458,757,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Lhohi,Noonu,Lhohi,5.816155,73.377663,692,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Maafaru,Noonu,Maafaru,5.824046,73.476635,919,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Maalhendhoo,Noonu,Maalhendhoo,5.901169,73.456584,724,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Magoodhoo,Noonu,Magoodhoo,5.776423,73.362443,305,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Manadhoo,Noonu,Manadhoo,5.765743,73.410789,1745,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Miladhoo,Noonu,Miladhoo,5.790438,73.362669,934,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+N.Velidhoo,Noonu,Velidhoo,5.664495,73.273415,1832,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Agolhitheemu,Raa,Agolhitheemu,5.792705,73.006601,381,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Alifushi,Raa,Alifushi,5.967299,72.953446,1859,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Dhuvaafaru,Raa,Dhuvaafaru,5.628723,73.041573,3321,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Fainu,Raa,Fainu,5.463381,73.034623,423,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Hulhudhuffaaru,Raa,Hulhudhuffaaru,5.764960,73.012338,1228,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Iguraidhoo,Raa,Iguraidhoo,5.476999,73.036724,1278,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Innamaadhoo,Raa,Innamaadhoo,5.549553,73.044481,663,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Kinolhas,Raa,Kinolhas,5.448395,73.029347,543,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Maakurathu,Raa,Maakurathu,5.606148,73.044141,956,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Maduvvari,Raa,Maduvvari,5.486228,72.896042,1760,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Meedhoo,Raa,Meedhoo,5.458097,72.954934,1872,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Rasgetheemu,Raa,Rasgetheemu,5.807673,73.002946,537,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Rasmaadhoo,Raa,Rasmaadhoo,5.563048,73.043916,554,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Ugoofaaru,Raa,Ugoofaaru,5.669184,73.029632,1754,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+R.Vaadhoo,Raa,Vaadhoo,5.856620,72.991551,452,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Dharavandhoo,Baa,Dharavandhoo,5.157297,73.131003,997,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Dhonfanu,Baa,Dhonfanu,5.187837,73.122917,398,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Eydhafushi,Baa,Eydhafushi,5.102564,73.070754,2581,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Fehendhoo,Baa,Fehendhoo,4.881573,72.969514,198,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Fulhadhoo,Baa,Fulhadhoo,4.884909,72.933181,341,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Goidhoo,Baa,Goidhoo,4.873034,72.998920,583,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Hithaadhoo,Baa,Hithaadhoo,5.007182,72.922969,744,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Kamadhoo,Baa,Kamadhoo,5.281911,73.136945,552,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Kendhoo,Baa,Kendhoo,5.275308,73.010347,1002,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Kihaadhoo,Baa,Kihaadhoo,5.215126,73.125014,481,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Kudarikilu,Baa,Kudarikilu,5.300347,73.071011,557,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Maalhos,Baa,Maalhos,5.134622,73.107952,572,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+B.Thulhaadhoo,Baa,Thulhaadhoo,5.021629,72.841267,1625,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Lh.Hinnavaru,Lhaviyani,Hinnavaru,5.492589,73.411353,2286,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Lh.Kurendhoo,Lhaviyani,Kurendhoo,5.333807,73.463738,1171,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Lh.Naifaru,Lhaviyani,Naifaru,5.445368,73.364019,4832,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Lh.Olhuvelifushi,Lhaviyani,Olhuvelifushi,5.278507,73.606774,703,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+K.Dhiffushi,Kaafu,Dhiffushi,4.441652,73.714142,1270,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+K.Gaafaru,Kaafu,Gaafaru,4.736225,73.499617,1294,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+K.Gulhi,Kaafu,Gulhi,3.989810,73.509668,976,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+K.Guraidhoo,Kaafu,Guraidhoo,3.901438,73.467567,1743,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+K.Himmafushi,Kaafu,Himmafushi,4.308070,73.571089,2012,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+K.Huraa,Kaafu,Huraa,4.333535,73.601735,1654,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+K.Kaashidhoo,Kaafu,Kaashidhoo,4.955804,73.461266,2528,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+K.Maafushi,Kaafu,Maafushi,3.940918,73.489735,4471,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+K.Thulusdhoo,Kaafu,Thulusdhoo,4.372987,73.648063,1801,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+AA.Bodufolhudhoo,Alif Alif,Bodufolhudhoo,4.185600,72.773441,704,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+AA.Feridhoo,Alif Alif,Feridhoo,4.051017,72.725571,544,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+AA.Himandhoo,Alif Alif,Himandhoo,3.920624,72.744732,885,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+AA.Maalhos,Alif Alif,Maalhos,3.986259,72.719280,516,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+AA.Mathiveri,Alif Alif,Mathiveri,4.191862,72.746326,878,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+AA.Rasdhoo,Alif Alif,Rasdhoo,4.263007,72.991875,1282,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+AA.Thoddoo,Alif Alif,Thoddoo,4.437157,72.959656,1924,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+AA.Ukulhas,Alif Alif,Ukulhas,4.215119,72.864206,1284,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Dhagethi,Alif Dhaal,Dhagethi,3.607441,72.955753,936,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Dhidhdhoo,Alif Dhaal,Dhidhdhoo,3.484204,72.877706,141,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Dhigurah,Alif Dhaal,Dhigurah,3.530077,72.925557,761,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Fenfushi,Alif Dhaal,Fenfushi,3.489285,72.784294,1000,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Hangnameedhoo,Alif Dhaal,Hangnameedhoo,3.849257,72.955216,484,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Kuburudhoo,Alif Dhaal,Kuburudhoo,3.775647,72.924904,509,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Maamigili,Alif Dhaal,Maamigili,3.474163,72.835007,2798,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Mahibadhoo,Alif Dhaal,Mahibadhoo,3.757252,72.968952,2580,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Mandhoo,Alif Dhaal,Mandhoo,3.697979,72.709627,418,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+ADh.Omadhoo,Alif Dhaal,Omadhoo,3.791631,72.962339,913,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+V.Felidhoo,Vaavu,Felidhoo,3.471946,73.547306,620,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+V.Fulidhoo,Vaavu,Fulidhoo,3.680475,73.415798,400,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+V.Keyodhoo,Vaavu,Keyodhoo,3.462122,73.550051,641,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+V.Rakeedhoo,Vaavu,Rakeedhoo,3.314963,73.469889,76,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+V.Thinadhoo,Vaavu,Thinadhoo,3.487660,73.538365,258,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+M.Dhiggaru,Meemu,Dhiggaru,3.114395,73.562516,1099,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+M.Kolhufushi,Meemu,Kolhufushi,2.779659,73.425247,793,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+M.Maduvvari,Meemu,Maduvvari,3.104998,73.572482,318,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+M.Mulah,Meemu,Mulah,2.946547,73.584702,1426,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+M.Muli,Meemu,Muli,2.915835,73.582017,949,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+M.Naalaafushi,Meemu,Naalaafushi,2.895432,73.577297,430,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+M.Raimandhoo,Meemu,Raimandhoo,3.089727,73.639042,171,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+M.Veyvah,Meemu,Veyvah,2.956357,73.599971,304,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+F.Biledhdhoo,Faafu,Biledhdhoo,3.118342,72.984275,967,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+F.Dharaboodhoo,Faafu,Dharaboodhoo,3.062865,72.925971,455,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+F.Feeali,Faafu,Feeali,3.269975,73.002052,922,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+F.Magoodhoo,Faafu,Magoodhoo,3.077201,72.959352,702,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+F.Nilandhoo,Faafu,Nilandhoo,3.056893,72.888928,1823,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Dh.Badidhoo,Dhaalu,Badidhoo,2.936563,72.990424,629,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Dh.Hulhudheli,Dhaalu,Hulhudheli,2.858462,72.846293,764,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Dh.Kudahuvadhoo,Dhaalu,Kudahuvadhoo,2.669634,72.890210,3131,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Dh.Maaeboodhoo,Dhaalu,Maaeboodhoo,2.695748,72.963591,679,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Dh.Meedhoo,Dhaalu,Meedhoo,2.998364,73.006614,1118,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Dh.Ribudhoo,Dhaalu,Ribudhoo,2.924465,72.895336,316,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Buruni,Thaa,Buruni,2.558938,73.106875,414,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Dhiyamigili,Thaa,Dhiyamigili,2.339405,73.337010,649,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Gaadhiffushi,Thaa,Gaadhiffushi,2.252627,73.212919,317,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Guraidhoo,Thaa,Guraidhoo,2.325248,73.319251,1293,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Hirilandhoo,Thaa,Hirilandhoo,2.271355,72.931642,1146,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Kadoodhoo,Thaa,Kadoodhoo,2.320482,72.916758,456,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Kibidhoo,Thaa,Kibidhoo,2.168729,73.067717,715,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Madifushi,Thaa,Madifushi,2.356336,73.355067,858,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Omadhoo,Thaa,Omadhoo,2.167710,73.023622,417,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Thimarafushi,Thaa,Thimarafushi,2.208894,73.148276,1229,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Vandhoo,Thaa,Vandhoo,2.291721,72.941904,364,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Veymandoo,Thaa,Veymandoo,2.185599,73.094337,1321,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Th.Vilufushi,Thaa,Vilufushi,2.503180,73.308583,1081,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Dhabidhoo,Laamu,Dhabidhoo,2.094602,73.545037,606,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Fonadhoo,Laamu,Fonadhoo,1.832980,73.500422,2986,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Gamu,Laamu,Gamu,1.912328,73.539996,4815,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Hithadhoo,Laamu,Hithadhoo,1.796715,73.388184,1108,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Isdhoo,Laamu,Isdhoo,2.118621,73.567380,929,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Kalaidhoo,Laamu,Kalaidhoo,1.988025,73.536860,655,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Kunahandhoo,Laamu,Kunahandhoo,1.783064,73.368356,601,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Maabaidhoo,Laamu,Maabaidhoo,2.029707,73.533629,565,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Maamendhoo,Laamu,Maamendhoo,1.817430,73.389471,879,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Maavah,Laamu,Maavah,1.886217,73.244477,1379,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+L.Mundoo,Laamu,Mundoo,2.012417,73.534202,176,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GA.Dhaandhoo,Gaafu Alif,Dhaandhoo,0.621018,73.461069,1044,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GA.Dhevvadhoo,Gaafu Alif,Dhevvadhoo,0.557063,73.242216,599,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GA.Gemanafushi,Gaafu Alif,Gemanafushi,0.442617,73.568410,1318,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GA.Kanduhulhudhoo,Gaafu Alif,Kanduhulhudhoo,0.351244,73.539694,619,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GA.Kodey,Gaafu Alif,Kodey,0.498635,73.549055,328,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GA.Kolamaafushi,Gaafu Alif,Kolamaafushi,0.837882,73.184293,636,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GA.Maamendhoo,Gaafu Alif,Maamendhoo,0.714075,73.439040,1201,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GA.Nilandhoo,Gaafu Alif,Nilandhoo,0.636307,73.446419,545,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GA.Viligili,Gaafu Alif,Viligili,0.756576,73.435418,2900,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GDh.Fares-Maathodaa,Gaafu Dhaalu,Fares-Maathodaa,0.198914,73.189720,858,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GDh.Fiyoari,Gaafu Dhaalu,Fiyoari,0.221615,73.136490,637,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GDh.Gadhdhoo,Gaafu Dhaalu,Gadhdhoo,0.290057,73.457672,1414,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GDh.Hoadedhdhoo,Gaafu Dhaalu,Hoadedhdhoo,0.444371,73.003868,885,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GDh.Madaveli,Gaafu Dhaalu,Madaveli,0.458605,72.998618,1219,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GDh.Nadallaa,Gaafu Dhaalu,Nadallaa,0.293514,73.040562,581,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GDh.Rathafandhoo,Gaafu Dhaalu,Rathafandhoo,0.252663,73.104502,431,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GDh.Thinadhoo,Gaafu Dhaalu,Thinadhoo,0.532534,72.997362,6217,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+GDh.Vaadhoo,Gaafu Dhaalu,Vaadhoo,0.227338,73.273633,516,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+Gn.Fuvahmulah,Gnaviyani,Fuvahmulah,-0.295676,73.424741,9177,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+S.Feydhoo,Seenu,Feydhoo,-0.683155,73.134426,4289,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+S.Hithadhoo,Seenu,Hithadhoo,-0.610175,73.091380,13759,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+S.Hulhudhoo,Seenu,Hulhudhoo,-0.589301,73.229458,1182,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+S.Maradhoo,Seenu,Maradhoo,-0.669019,73.120049,2542,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
+S.Maradhoo-Feydhoo,Seenu,Maradhoo-Feydhoo,-0.673310,73.125814,1398,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_node
+S.Meedhoo,Seenu,Meedhoo,-0.589301,73.229458,1892,"MBS Census 2022 Table P3, total resident population (Maldivian + foreign)",osm_polygon
