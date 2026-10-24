@@ -1,6 +1,6 @@
 # Export of `weather/data/weather.sqlite`
 
-Exported 2026-10-24T08:23:56+00:00 (UTC). Gzipped CSV, header row, UTF-8; empty field = NULL.
+Exported 2026-10-24T08:35:33+00:00 (UTC). Gzipped CSV, header row, UTF-8; empty field = NULL.
 See weather/DATA_GUIDE.md for what each table means.
 
 | table | rows | from | to | file size |
