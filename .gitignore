@@ -1,0 +1,5 @@
+# Added by Crundi: local machine config, not for committing.
+# .mcp.json holds this machine's Crundi API key.
+.mcp.json
+crundi_attachments/
+.claude/settings.local.json

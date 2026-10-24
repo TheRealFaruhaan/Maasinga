@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Dhivehi stack: MV A Waheed, then Noto Sans Thaana (see layout.tsx). */
+:root {
+  --font-thaana-src: var(--font-waheed), var(--font-noto-thaana);
+}
+
+@theme inline {
+  --color-brand: #1f3fd6;
+  --color-brand-ink: #0b1a66;
+  --font-sans: var(--font-poppins), var(--font-thaana-src), system-ui, sans-serif;
+  --font-display: var(--font-lexend), var(--font-poppins), var(--font-thaana-src), sans-serif;
+  --font-thaana: var(--font-thaana-src), sans-serif;
+}
+
+html {
+  background: var(--color-brand);
+}
+
+body {
+  min-height: 100dvh;
+  background: radial-gradient(120% 60% at 50% 0%, #2c4ff0 0%, var(--color-brand) 55%);
+  color: var(--color-brand-ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+html[dir="rtl"] body {
+  font-family: var(--font-thaana), var(--font-poppins), sans-serif;
+}
+button {
+  cursor: pointer;
+}
+
+/* Thaana's short glyphs need more room than Latin at the tiny label sizes. */
+html[dir="rtl"] .text-\[9px\] { font-size: 11px; }
+html[dir="rtl"] .text-\[10px\] { font-size: 12px; }
+html[dir="rtl"] .text-\[11px\] { font-size: 13px; }
+html[dir="rtl"] .text-xs { font-size: 13px; }
+
