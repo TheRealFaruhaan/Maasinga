@@ -12,6 +12,51 @@ This repo has two parts:
 
 The final database is committed as a dump: [`backend/data/db/maasinga_db_2026-10-24.sql.gz`](backend/data/db/maasinga_db_2026-10-24.sql.gz).
 
+## The problem
+
+People travel between islands every day by speedboat, dhoni and ferry: to hospital, work, school and shops.
+Schedules live in Viber groups and in people's heads, and decision-makers see only their own area, after the fact.
+Maasinga reads the boats themselves (FollowMe GPS trackers) to show when boats really leave, how rough the
+sea is, who still crosses in rough weather, where boats lose phone signal, and which islands get too few boats.
+For passengers it's a trip planner; for policy makers it's a dashboard. Full write-up, method and limits:
+[backend/README.md](backend/README.md).
+
+## Data sources
+
+| Source | Type | Used for |
+|---|---|---|
+| FollowMe boat GPS, August 2025 (17.4M positions, 1,776 trackers) | Organiser dataset (MBS) | Trips, routes, usual departures, predictions, Sea Pace Index, safety, signal dead zones, harbour |
+| MTCC bus and ferry file | Organiser dataset (MBS) | Bus route R7 and bus ridership (its passenger figures are randomly generated sample data, per the file) |
+| Avas rides, MACL airport traffic | Organiser datasets (MBS) | Explored only (`backend/pipeline/09_taxi.py`); not shown in the apps |
+| MBS Census 2022, Table P3 | Public | Island population, census island names |
+| OpenStreetMap (via Overpass), ODbL | Public | Island positions, land, reefs and resort names |
+| Wikidata, CC0 | Public | Matching island names only (no coordinates) |
+| Open-Meteo: ERA5 wind gusts, ERA5-Ocean waves (Copernicus / ECMWF), CC BY 4.0 | Public, collected by the team's weather collector | Wind and waves, August 2025 |
+| NASA GPM IMERG daily rain | Public, collected by the team's weather collector | Rain per day |
+| Open-Meteo Marine forecast, CC BY 4.0 | Public, live | The 3-day sea rating in the apps |
+| maldivesairport.com, mtcc.mv and Maldives news sites (see.mv, raajje.mv) | Public | Airport taxi fares, Greater Malé bus routes |
+| App Store and Google Play listings, public hotlines | Public | Taxi and RTL Travel app links and icons; 1655, 1650, 119, 102, 118 |
+| Team lists | Team | Boat display names (best guesses, demo only), Dhivehi island names, demo quick contacts (placeholder numbers) |
+
+Raw tracker IDs are replaced by a short hash and are not published. Full URLs and caveats:
+[backend/pipeline/reference/SOURCES.md](backend/pipeline/reference/SOURCES.md).
+
+## Tools
+
+Python, DuckDB, FastAPI, PostgreSQL, Docker, Next.js 16, React 19, Tailwind CSS 4, TypeScript, deck.gl,
+GitHub, and the Crundi dev server (hosting the services during development).
+
+## AI tools
+
+**Claude Code (Anthropic)** was used to:
+- write the data pipeline, the API and both web apps (public trip planner and policy dashboard) from the team's
+  designs and instructions, and to fix bugs found in testing;
+- find and check public reference data (census, OpenStreetMap, app store links, bus routes, airport fares);
+- draft the Dhivehi interface text (reviewed by the team);
+- check results and test the full suite (restore the database, run the API and the apps, log in).
+
+The team reviewed the output; every number in the apps comes from the pipeline scripts in this repository.
+
 ## Live demo
 
 | What | Address |
