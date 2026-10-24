@@ -1,6 +1,6 @@
 # Maasinga web data
 
-These 16 files are all the data the Maasinga dashboard and API use. The dashboard loads the first 12; the last 4 (made for apps) are only loaded into the API. Together they are about 11 MB.
+These 19 files are all the data the Maasinga dashboard and API use. The dashboard loads the first 12; the last 7 (made for apps) are only loaded into the API. Together they are about 11 MB.
 The pipeline (`pipeline/`) built them from the sources below, and `api/seed.py` loads them into PostgreSQL (tables in `api/schema.sql`). The raw GPS (1.8 GB)
 is never loaded by the site.
 
@@ -101,6 +101,18 @@ API: `/weather`, `/weather/{region}/{date}`.
 ### places-extra.json (37 KB): extra fields per place (API only)
 API: `/places`.
 - Per place id: `region` (sea region), `web_id` and `name_dv` (island id and Dhivehi name in the team web app, matched in `pipeline/reference/web_islands.csv`).
+
+### contacts.json (85 KB): demo contacts (API only)
+API: `/places/{id}/contacts`.
+- Per island: `cargo`, `speedboat`, `ferry`, `shop` lists of `{name, phone}`. **Demo data**: names from the web app's mock lists, numbers are placeholders (`7XXXXXX` / `9XXXXXX`), except the public MTCC hotline 1650.
+
+### predict-eval.json (1 KB): check of the departure prediction (API only)
+API: `model.check` in `/predict/*`.
+- Trained on 1 to 24 August, tested on 25 to 31 August. Precision, recall and F1 per confidence band, and a baseline without the weekday.
+
+### harbour-timelines.json (1.5 MB): one timeline per North Harbour boat (API only)
+API: `/harbour/boats/{code}/timeline`.
+- Per boat code: `km` (distance from Male every 30 minutes, null = no GPS), `stops`, `trips` (out of the Male area and back) and `projection` (next trip from the boat's median cycle). See `pipeline/13_harbour_timeline.py`.
 
 ## Limits
 - One month of boat data (August 2025, southwest monsoon).

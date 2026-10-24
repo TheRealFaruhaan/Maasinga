@@ -307,3 +307,38 @@ CREATE TABLE weather_daily (
   rain   double precision,            -- mm, mean over the region
   PRIMARY KEY (region, day)
 );
+
+-- Transport apps (taxi, ferry tickets) with store links and hotlines, from api/apps.json (curated by the team).
+CREATE TABLE apps (
+  id              text PRIMARY KEY,
+  category        text NOT NULL,      -- taxi | ferry
+  name            text NOT NULL,
+  name_dv         text,
+  blurb_en        text,
+  blurb_dv        text,
+  color           text,
+  initials        text,
+  icon            text,               -- file in api/static/apps
+  ios_url         text,
+  android_package text,
+  web_url         text,
+  hotline         text,
+  places          text[],             -- place ids it serves; NULL = every island
+  ord             integer NOT NULL
+);
+
+-- DEMO contacts per island (pipeline step 11): placeholder numbers 7XXXXXX / 9XXXXXX, except the MTCC hotline 1650.
+CREATE TABLE contacts (
+  place_id text NOT NULL,
+  category text NOT NULL,             -- cargo | speedboat | ferry | shop
+  name     text NOT NULL,
+  phone    text NOT NULL,
+  ord      integer NOT NULL
+);
+CREATE INDEX contacts_place ON contacts (place_id);
+
+-- Per North Harbour boat: distance from Male every 30 minutes, stops, trips and the projected next trip (pipeline step 13).
+CREATE TABLE harbour_timelines (
+  code text PRIMARY KEY,
+  data jsonb NOT NULL                 -- {t0, step_min, km[], stops[], trips[], projection}
+);

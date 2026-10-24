@@ -207,3 +207,12 @@
     grid-column: 1 / -1;
   }
 }
+
+/* Rows open the boat's timeline above the list. */
+.pickable {
+  cursor: pointer;
+}
+
+.list .row[aria-current="true"] {
+  background: var(--accent-soft);
+}

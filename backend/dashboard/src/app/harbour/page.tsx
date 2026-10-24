@@ -2,12 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { Anchor, CalendarCheck, Clock, List, Map as MapIcon, Route, Ship, Timer } from "lucide-react";
+import { Activity, Anchor, CalendarCheck, Clock, List, Map as MapIcon, Route, Ship, Timer } from "lucide-react";
 import { Columns } from "@/components/charts";
 import { Dash, Grid, Kpi, Kpis, Panel } from "@/components/dash";
-import { Failed, Loading, Segmented } from "@/components/ui";
-import { fmt, useData, type HarbourBoat, type HarbourData } from "@/lib/data";
+import { Failed, Loading, Picker, Segmented } from "@/components/ui";
+import { fmt, useBoatName, useData, type HarbourBoat, type HarbourData } from "@/lib/data";
 import BoatIcon from "./BoatIcon";
+import BoatTimeline from "./BoatTimeline";
 import BoatTable, { type Filter } from "./BoatTable";
 import { median, stay, TYPE } from "./harbour";
 import s from "./harbour.module.css";
@@ -23,11 +24,19 @@ const short = (m: number) => (m < 60 ? `${Math.round(m)} min` : `${Math.round(m 
 export default function HarbourPage() {
   const raw = useData<HarbourData>("harbour.json");
   const [filter, setFilter] = useState<Filter>("all");
+  const [pickedState, setPicked] = useState<string | null>(null);
+  const boatName = useBoatName();
 
   if (raw instanceof Error) return <Failed what="harbour data" />;
   const data = raw ?? null;
   const boats = data?.boats ?? [];
   const busiest = data ? data.hours.indexOf(Math.max(...data.hours)) : 0;
+  // The timeline shows the boat picked in the list, or the boat with the most visits.
+  const picked = pickedState ?? boats[0]?.id ?? null;
+  const pick = (code: string) => {
+    setPicked(code);
+    document.getElementById("timeline")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const typeMedian = (t: HarbourBoat["type"]) => median(boats.filter((b) => b.type === t).map((b) => b.medianMin));
 
   return (
@@ -84,6 +93,28 @@ export default function HarbourPage() {
           </Panel>
         </div>
 
+        <div id="timeline" className={s.full}>
+          <Panel
+            span={12}
+            title={picked ? `Every trip of ${boatName(picked)}, as distance from Male` : "Every trip, as distance from Male"}
+            icon={Activity}
+            actions={
+              data && picked ? (
+                <Picker
+                  compact
+                  label=""
+                  placeholder="Boat"
+                  value={picked}
+                  onChange={setPicked}
+                  options={[...boats].sort((a, b) => boatName(a.id).localeCompare(boatName(b.id))).map((b) => ({ value: b.id, label: `${boatName(b.id)} (${b.id})` }))}
+                />
+              ) : undefined
+            }
+          >
+            {picked ? <BoatTimeline key={picked} code={picked} /> : <Loading height={400} />}
+          </Panel>
+        </div>
+
         <Panel
           span={12}
           title="Boats"
@@ -102,7 +133,7 @@ export default function HarbourPage() {
             />
           }
         >
-          {data ? <BoatTable data={data} filter={filter} /> : <Loading height={600} />}
+          {data ? <BoatTable data={data} filter={filter} picked={picked} onPick={pick} /> : <Loading height={600} />}
         </Panel>
       </Grid>
     </Dash>

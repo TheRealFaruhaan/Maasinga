@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
-import { Anchor, BookOpen, LayoutDashboard, Menu, Moon, Navigation, ShieldAlert, Sun, Users, Waves, WifiOff, X } from "lucide-react";
+import { Anchor, BookOpen, LayoutDashboard, LogOut, Menu, Moon, Navigation, ShieldAlert, Sun, Users, Waves, WifiOff, X } from "lucide-react";
+import { logout, useSession } from "@/lib/auth";
 import { setTheme, useTheme } from "@/lib/theme";
 import s from "./Sidebar.module.css";
 
@@ -62,6 +63,17 @@ function ThemeSwitch() {
   );
 }
 
+function SignOut() {
+  const session = useSession();
+  const name = session && session !== "loading" ? session.user.username : "";
+  return (
+    <button className={s.theme} onClick={logout} aria-label="Sign out">
+      <LogOut size={18} />
+      <span>Sign out{name && <small className={s.who}> {name}</small>}</span>
+    </button>
+  );
+}
+
 export default function Sidebar() {
   // The shell is prerendered once for all pages, so the active link is marked after hydration.
   const hydrated = useSyncExternalStore(noop, () => true, () => false);
@@ -92,7 +104,7 @@ export default function Sidebar() {
           <Mark />
           <span>
             Maasinga
-            <small>Maldives sea mobility</small>
+            <small>Maldives mobility</small>
           </span>
         </Link>
         {nav}
@@ -102,6 +114,7 @@ export default function Sidebar() {
             Boat data: August 2025
           </div>
           <ThemeSwitch />
+          <SignOut />
         </div>
       </aside>
 
@@ -118,6 +131,7 @@ export default function Sidebar() {
         <div className={s.sheet}>
           {nav}
           <ThemeSwitch />
+          <SignOut />
         </div>
       )}
     </>

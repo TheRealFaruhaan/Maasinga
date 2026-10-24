@@ -1,0 +1,224 @@
+.wrap {
+  --male: #b4237a;
+  --call: var(--warning);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: fade-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+:global([data-theme="dark"]) .wrap {
+  --male: #e05ca3;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--raised);
+}
+
+.factLabel {
+  font-size: 13px;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.factValue {
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.factSub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.accent {
+  color: var(--accent);
+}
+
+.chart {
+  position: relative;
+  width: 100%;
+}
+
+.chart svg {
+  display: block;
+  touch-action: pan-y;
+}
+
+.grid {
+  stroke: var(--grid);
+  stroke-dasharray: 2 4;
+}
+
+.base {
+  stroke: var(--control);
+}
+
+.tick {
+  fill: var(--faint);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.maleLabel {
+  fill: var(--male);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.gap {
+  opacity: 0.9;
+}
+
+.hatchLine {
+  stroke: var(--control);
+  stroke-width: 1.5;
+}
+
+.line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+.male {
+  stroke: var(--male);
+  stroke-width: 7;
+  stroke-linecap: butt;
+}
+
+.call {
+  stroke: var(--call);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.callDot {
+  fill: var(--call);
+}
+
+.place {
+  fill: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.endLine {
+  stroke: var(--male);
+  stroke-width: 1.5;
+}
+
+.endLabel {
+  fill: var(--male);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.projZone {
+  fill: var(--raised);
+  opacity: 0.6;
+}
+
+.proj {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+}
+
+.projDot {
+  fill: var(--surface);
+  stroke: var(--text);
+  stroke-width: 1.6;
+}
+
+.projLabel {
+  fill: var(--faint);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.projText {
+  fill: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cursor {
+  stroke: var(--cursor);
+  stroke-width: 1;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend i {
+  display: inline-block;
+}
+
+.lgLine {
+  width: 16px;
+  height: 2px;
+  background: var(--accent);
+}
+
+.lgMale {
+  width: 16px;
+  height: 7px;
+  background: var(--male);
+}
+
+.lgCall {
+  width: 16px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--call);
+}
+
+.lgGap {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--control);
+  background: repeating-linear-gradient(45deg, var(--control) 0 1.5px, transparent 1.5px 5px);
+}
+
+.lgProj {
+  width: 16px;
+  height: 0;
+  border-top: 2px dashed var(--muted);
+}
+
+.empty {
+  padding: 24px;
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

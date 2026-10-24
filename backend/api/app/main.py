@@ -1,4 +1,4 @@
-"""Maasinga API: serves the Maldives sea-mobility data from PostgreSQL.
+"""Maasinga API: serves the Maldives mobility data from PostgreSQL.
 
 Two kinds of endpoint:
 - Dataset endpoints (/network, /sea, /safety, /signal, /harbour, /paths, /route-boats, /replay/*, /map/*)
@@ -9,6 +9,7 @@ Two kinds of endpoint:
 The data changes only when seed.py runs, so each dataset is built once and kept in memory.
 Interactive docs: /docs
 """
+import datetime
 import json
 import os
 import time
@@ -16,12 +17,16 @@ import urllib.request
 from contextlib import asynccontextmanager
 from functools import lru_cache
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from psycopg.rows import dict_row
 from dotenv import load_dotenv
 from psycopg_pool import ConnectionPool
+
+from app import auth
+from app.auth import POLICY
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))  # api/.env, if present
 
@@ -44,17 +49,23 @@ app = FastAPI(
     lifespan=lifespan,
     title="Maasinga API",
     version="1.0.0",
-    description="Maldives sea mobility from 1,776 boat GPS trackers (FollowMe, August 2025), "
+    description="Maldives mobility data from 1,776 boat GPS trackers (FollowMe, August 2025), "
     "with ERA5 and NASA IMERG weather, MBS Census 2022 and OpenStreetMap. Boat IDs are coded. Guide: docs/API.md",
 )
 app.add_middleware(GZipMiddleware, minimum_size=1024)
-app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_methods=["GET"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_methods=["GET", "POST", "DELETE"], allow_headers=["*"])
+app.include_router(auth.router)
+# App icons (and other static files): /static/apps/<id>.jpg
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "..", "static")), name="static")
 
 
 def rows(sql, *args):
     with pool.connection() as con, con.cursor(row_factory=dict_row) as cur:
         cur.execute(sql, args)
         return cur.fetchall()
+
+
+auth._rows = rows
 
 
 def meta(key):
@@ -79,7 +90,7 @@ def health():
 # ---------- Dataset endpoints (same shapes as the dashboard files) ----------
 
 
-@app.get("/network", tags=["datasets"])
+@app.get("/network", tags=["datasets"], dependencies=[POLICY])
 @lru_cache
 def network():
     """Places, routes with usual departures and hourly departures, Travel Index, trips per day."""
@@ -106,14 +117,14 @@ def network():
     }
 
 
-@app.get("/paths", tags=["datasets"])
+@app.get("/paths", tags=["datasets"], dependencies=[POLICY])
 @lru_cache
 def paths():
     """Typical GPS track of each route: {"FROM|TO": [lon, lat, ...]} in degrees x 10,000."""
     return {f"{r['from_id']}|{r['to_id']}": r["coords"] for r in rows("SELECT from_id, to_id, coords FROM route_paths")}
 
 
-@app.get("/route-boats", tags=["datasets"])
+@app.get("/route-boats", tags=["datasets"], dependencies=[POLICY])
 @lru_cache
 def route_boats():
     """Boats on each route: {"FROM|TO": [[code, type, trips, median minutes, last day], ...]}."""
@@ -123,7 +134,7 @@ def route_boats():
     return out
 
 
-@app.get("/sea", tags=["datasets"])
+@app.get("/sea", tags=["datasets"], dependencies=[POLICY])
 @lru_cache
 def sea():
     """Sea Pace Index: boat speed against waves, per region, day and map cell."""
@@ -149,7 +160,7 @@ def sea():
     }
 
 
-@app.get("/safety", tags=["datasets"])
+@app.get("/safety", tags=["datasets"], dependencies=[POLICY])
 @lru_cache
 def safety():
     """Crossings between atolls in rough sea, and speedboats that kept full speed."""
@@ -172,7 +183,7 @@ def safety():
     }
 
 
-@app.get("/signal", tags=["datasets"])
+@app.get("/signal", tags=["datasets"], dependencies=[POLICY])
 @lru_cache
 def signal():
     """Where boats lose phone signal: sea cells, dead zones and the worst cells."""
@@ -186,7 +197,7 @@ def signal():
     }
 
 
-@app.get("/harbour", tags=["datasets"])
+@app.get("/harbour", tags=["datasets"], dependencies=[POLICY])
 @lru_cache
 def harbour():
     """Male North Harbour: boats, stays, arrivals and where they came from."""
@@ -215,13 +226,13 @@ def _replay(label):
     return {**info, "segments": [{"c": s["boat_class"], "t": s["times"], "p": s["coords"]} for s in segs]}
 
 
-@app.get("/replay/{label}", tags=["datasets"])
+@app.get("/replay/{label}", tags=["datasets"], dependencies=[POLICY])
 def replay(label: str):
     """Every moving boat on the calm day (calm) or the rough day (rough): paths with times."""
     return _replay(label)
 
 
-@app.get("/boat-names", tags=["datasets"])
+@app.get("/boat-names", tags=["datasets"], dependencies=[POLICY])
 @lru_cache
 def boat_names():
     """Display name for each coded boat, {code: name}. Demo only: names are best guesses from the team's list."""
@@ -285,17 +296,51 @@ def slot_boats(where, *args, top=3):
     return out
 
 
+def via(from_id, to_id, top=5):
+    """Connections with one stop: listed routes from -> X and X -> to, busiest first."""
+    return rows(
+        "SELECT a.to_id AS via_id, p.name AS via_name, a.trips AS first_trips, b.trips AS second_trips, "
+        "a.median_min AS first_min, b.median_min AS second_min, a.main_type AS first_type, b.main_type AS second_type "
+        "FROM routes a JOIN routes b ON b.from_id = a.to_id AND b.to_id = %s JOIN places p ON p.id = a.to_id "
+        "WHERE a.from_id = %s AND a.to_id <> %s ORDER BY least(a.trips, b.trips) DESC, a.to_id LIMIT %s",
+        to_id, from_id, to_id, top)
+
+
 @app.get("/routes/{from_id}/{to_id}", tags=["queries"])
 def route(from_id: str, to_id: str):
-    """One route: usual departures (with arrival time and the boats that run them), departures by hour, boats, typical track."""
+    """One route: usual departures (with arrival time and the boats that run them), departures by hour, boats, typical track,
+    and connections with one stop (`via`). A pair with fewer than 20 trips in August is not a listed route (`listed: false`):
+    it still returns its real trips and boats, with no usual departures or track. 404 only for an unknown place."""
     r = rows(
         "SELECT r.*, f.name AS from_name, t.name AS to_name FROM routes r JOIN places f ON f.id = r.from_id JOIN places t ON t.id = r.to_id "
         "WHERE r.from_id = %s AND r.to_id = %s", from_id, to_id)
     if not r:
-        raise HTTPException(404, "No route between these places")
+        f, t = place_or_404(from_id), place_or_404(to_id)
+        stats = rows(
+            "SELECT count(*) AS trips, count(DISTINCT boat_code) AS boats, round(percentile_cont(0.5) WITHIN GROUP (ORDER BY minutes)) AS median_min "
+            "FROM trips WHERE from_id = %s AND to_id = %s", from_id, to_id)[0]
+        hours = [0] * 24
+        for h in rows("SELECT extract(hour FROM dep)::int AS h, count(*) AS n FROM trips WHERE from_id = %s AND to_id = %s GROUP BY 1", from_id, to_id):
+            hours[h["h"]] = h["n"]
+        boats = rows(
+            "SELECT t.boat_code, b.name AS boat_name, b.type AS boat_type, b.kind AS boat_kind, count(*) AS trips, "
+            "round(percentile_cont(0.5) WITHIN GROUP (ORDER BY t.minutes))::int AS median_min, max(t.dep)::date AS last_seen "
+            "FROM trips t JOIN boats b ON b.code = t.boat_code WHERE t.from_id = %s AND t.to_id = %s "
+            "GROUP BY 1, 2, 3, 4 ORDER BY 5 DESC, 1", from_id, to_id)
+        types = {}
+        for b in boats:
+            types[b["boat_type"]] = types.get(b["boat_type"], 0) + b["trips"]
+        return {
+            "from_id": from_id, "to_id": to_id, "from_name": f["name"], "to_name": t["name"], "listed": False,
+            "trips": stats["trips"], "boats_count": stats["boats"], "median_min": stats["median_min"], "late_pct": None,
+            "main_type": max(sorted(types), key=types.get) if types else None,
+            "departures": [], "hours": hours, "boats": boats, "path": [], "via": via(from_id, to_id),
+        }
     sb = slot_boats("t.from_id = %s AND t.to_id = %s", from_id, to_id)
     return {
         **r[0],
+        "listed": True,
+        "boats_count": r[0]["boats"],
         "departures": [
             {"time": d["time"], "arrives": arrives(d["time"], r[0]["median_min"]), "days": d["days"], "boats": sb.get((from_id, to_id, d["time"]), [])}
             for d in rows("SELECT time, days FROM route_departures WHERE from_id = %s AND to_id = %s ORDER BY time", from_id, to_id)
@@ -306,6 +351,7 @@ def route(from_id: str, to_id: str):
             "FROM route_boats rb LEFT JOIN boats b ON b.code = rb.boat_code WHERE rb.from_id = %s AND rb.to_id = %s ORDER BY rb.rank",
             from_id, to_id),
         "path": (rows("SELECT coords FROM route_paths WHERE from_id = %s AND to_id = %s", from_id, to_id) or [{"coords": []}])[0]["coords"],
+        "via": via(from_id, to_id),
     }
 
 
@@ -359,7 +405,7 @@ def schedule(place_id: str):
     }
 
 
-@app.get("/boats", tags=["app"])
+@app.get("/boats", tags=["app"], dependencies=[POLICY])
 def boats(
     type: str | None = Query(None, description="fast, dhoni or slow"),
     home: str | None = Query(None, description="Place id the boat is based at"),
@@ -379,7 +425,7 @@ def boats(
     )
 
 
-@app.get("/boats/{code}", tags=["app"])
+@app.get("/boats/{code}", tags=["app"], dependencies=[POLICY])
 def boat(code: str):
     """One boat: details, the routes it runs with its usual times, trips per day, and its last 20 trips."""
     code = code.upper()
@@ -403,7 +449,7 @@ def boat(code: str):
     }
 
 
-@app.get("/trips", tags=["app"])
+@app.get("/trips", tags=["app"], dependencies=[POLICY])
 def trips(
     from_id: str | None = Query(None, alias="from", description="Place id it left from"),
     to_id: str | None = Query(None, alias="to", description="Place id it went to"),
@@ -448,6 +494,182 @@ def weather_hours(region: str, date: str):
     if not r:
         raise HTTPException(404, "No weather for this region and day")
     return r
+
+
+@app.get("/apps", tags=["app"])
+def apps(
+    request: Request,
+    category: str | None = Query(None, description="taxi or ferry"),
+    place: str | None = Query(None, description="Place id; only apps that serve it (taxis: Male City only)"),
+):
+    """Transport apps with store links, hotline and icon, in the same shape as the web app's AppLink.
+    Taxi apps serve Male City (Male, Hulhumale, Vilimale, the airport); RTL Travel (ferry and bus tickets) serves every island."""
+    base = str(request.base_url).rstrip("/")
+    return [
+        {"id": a["id"], "category": a["category"], "name": a["name"], "name_dv": a["name_dv"],
+         "blurb": {"en": a["blurb_en"], "dv": a["blurb_dv"]}, "color": a["color"], "initials": a["initials"],
+         "icon": f"{base}/static/apps/{a['icon']}" if a["icon"] else None,
+         "iosUrl": a["ios_url"], "androidPackage": a["android_package"],
+         "googlePlayUrl": f"https://play.google.com/store/apps/details?id={a['android_package']}" if a["android_package"] else None,
+         "webUrl": a["web_url"], "hotline": a["hotline"], "places": a["places"]}
+        for a in rows("SELECT * FROM apps WHERE (%s::text IS NULL OR category = %s) AND (%s::text IS NULL OR places IS NULL OR %s = ANY(places)) ORDER BY ord",
+                      category, category, place, place)
+    ]
+
+
+@app.get("/places/{place_id}/contacts", tags=["app"])
+def contacts(place_id: str, category: str | None = Query(None, description="cargo, speedboat, ferry or shop")):
+    """DEMO quick contacts for an island by category (cargo, speedboat, ferry, shop). Names are made up and numbers are
+    placeholders (7XXXXXX / 9XXXXXX), except the public MTCC hotline 1650."""
+    place_or_404(place_id)
+    out = {"place": place_id, "demo": True, "contacts": {k: [] for k in ("cargo", "speedboat", "ferry", "shop")}}
+    for c in rows("SELECT category, name, phone FROM contacts WHERE place_id = %s AND (%s::text IS NULL OR category = %s) ORDER BY category, ord",
+                  place_id, category, category):
+        out["contacts"].setdefault(c["category"], []).append({"name": c["name"], "phone": c["phone"]})
+    if category:
+        out["contacts"] = {category: out["contacts"].get(category, [])}
+    return out
+
+
+@app.get("/harbour/boats/{code}/timeline", tags=["app"], dependencies=[POLICY])
+def harbour_timeline(code: str):
+    """One North Harbour boat over August 2025: distance from Male every 30 minutes (null = no GPS), every stop (in the
+    Male area or at another island, inside the harbour or not), each trip out of the Male area, and the projected next trip:
+    after the last day of data, and rolled forward to today with the boat's usual cycle."""
+    code = code.upper()
+    r = rows("SELECT h.data, b.name, b.type, b.kind, b.operator FROM harbour_timelines h LEFT JOIN boats b ON b.code = h.code WHERE h.code = %s", code)
+    if not r:
+        raise HTTPException(404, f"No North Harbour boat with code {code}")
+    d = dict(r[0]["data"])
+    p = d.get("projection")
+    if p and p.get("leaves"):
+        # Roll the usual cycle (time in Male + trip) forward until the departure is after now (Maldives time).
+        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None) + datetime.timedelta(hours=5)
+        cycle = datetime.timedelta(hours=p["median_stay_in_male_h"] + p["median_trip_h"])
+        leave = datetime.datetime.fromisoformat(p["leaves"])
+        if cycle.total_seconds() > 0 and leave < now:
+            leave += cycle * ((now - leave) // cycle + 1)
+        d["projection"] = {**p, "today": {"leaves": leave.strftime("%Y-%m-%dT%H:%M"),
+                                          "back": (leave + datetime.timedelta(hours=p["median_trip_h"])).strftime("%Y-%m-%dT%H:%M"),
+                                          "note": "the August cycle repeated to today; a pattern, not a schedule"}}
+    places = {x["id"]: x for x in rows("SELECT id, name, lat, lon FROM places WHERE id = ANY(%s)",
+                                         list({s["place"] for s in d["stops"] if s["place"]}))}
+    return {"code": code, "name": r[0]["name"], "type": r[0]["type"], "kind": r[0]["kind"], "operator": r[0]["operator"],
+            **d, "places": places}
+
+
+# ---------- Departure prediction (model checked in pipeline/12_predict.py) ----------
+
+PRED_A = 2.0  # pulls a weekday's rate toward the all-days rate; same value as the check
+AUG = [datetime.date(2025, 8, d) for d in range(1, 32)]
+N_DOW = {w: sum(1 for d in AUG if d.isoweekday() == w) for w in range(1, 8)}
+DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+
+def band(p):
+    return "very likely" if p >= 0.7 else "likely" if p >= 0.5 else "possible"
+
+
+def hhmm(m):
+    m = round(m) % 1440
+    return f"{m // 60:02d}:{m % 60:02d}"
+
+
+def sea_on(region, day):
+    """The live forecast for that day and region, when the day is in the 3-day forecast window."""
+    if not region:
+        return None
+    try:
+        f = forecast(region=region, place=None)
+    except HTTPException:
+        return None
+    return next((d for d in f["days"] if d["d"] == day.isoformat()), None)
+
+
+def predict_board(where, args, day, min_p, region):
+    """Predicted departures on one day for the listed routes that match `where` (on trips t)."""
+    w = day.isoweekday()
+    stats = rows(
+        "SELECT t.from_id, f.name AS from_name, t.to_id, p.name AS to_name, t.slot, count(DISTINCT t.dep::date) AS k, "
+        + ", ".join(f"count(DISTINCT t.dep::date) FILTER (WHERE extract(isodow FROM t.dep) = {i}) AS d{i}" for i in range(1, 8))
+        + ", percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(hour FROM t.dep) * 60 + extract(minute FROM t.dep)) AS m, "
+        "percentile_cont(0.5) WITHIN GROUP (ORDER BY t.minutes) AS dur "
+        "FROM trips t JOIN routes r ON r.from_id = t.from_id AND r.to_id = t.to_id JOIN places f ON f.id = t.from_id JOIN places p ON p.id = t.to_id "
+        f"WHERE {where} AND t.dep >= '2025-08-01' AND t.dep < '2025-09-01' GROUP BY 1, 2, 3, 4, 5",
+        *args)
+    sea = sea_on(region, day)
+    rates = {r["rough"]: r["perDay"] for r in meta("safety.crossingRates") or []}
+    rough_factor = rates[True] / rates[False] if sea and sea["rating"] == "rough" and rates.get(False) else 1.0
+    slow = 1 + (sea["loss_pct"] / 100 if sea else 0)
+    out = []
+    for s in stats:
+        rate = s["k"] / len(AUG)
+        p_dow = {i: (s[f"d{i}"] + PRED_A * rate) / (N_DOW[i] + PRED_A) for i in range(1, 8)}
+        p = p_dow[w] * rough_factor
+        if p < min_p:
+            continue
+        out.append({"departs": hhmm(s["m"]), "arrives": hhmm(s["m"] + s["dur"] * slow), "from_id": s["from_id"], "from_name": s["from_name"],
+                    "to_id": s["to_id"], "to_name": s["to_name"], "probability": round(p, 2), "confidence": band(p), "slot": s["slot"],
+                    "minutes": round(s["dur"] * slow), "runs_on": [DOW[i - 1] for i in range(1, 8) if p_dow[i] >= 0.5], "boats": []})
+    if out:
+        # Boats that usually ran each predicted slot, preferring the same weekday.
+        keys = {(o["from_id"], o["to_id"], o["slot"]): o for o in out}
+        for b in rows(
+            "SELECT t.from_id, t.to_id, t.slot, t.boat_code, bo.name, bo.type, count(DISTINCT t.dep::date) FILTER (WHERE extract(isodow FROM t.dep) = %s) AS same_day, "
+            "count(DISTINCT t.dep::date) AS days FROM trips t JOIN routes r ON r.from_id = t.from_id AND r.to_id = t.to_id JOIN boats bo ON bo.code = t.boat_code "
+            f"WHERE {where} GROUP BY 1, 2, 3, 4, 5, 6 ORDER BY 7 DESC, 8 DESC, 4", w, *args):
+            o = keys.get((b["from_id"], b["to_id"], b["slot"]))
+            if o and len(o["boats"]) < 3:
+                o["boats"].append({"code": b["boat_code"], "name": b["name"], "type": b["type"], "days": b["days"]})
+    return sorted(out, key=lambda o: (o["departs"], o["to_id"])), sea
+
+
+def model_info():
+    e = meta("predict.eval") or {}
+    return {"method": "For each route and 15-minute departure slot: how often boats left on that weekday in August 2025, pulled toward the "
+                      "all-days rate. Rough sea in the live forecast lowers the chance (rough days had fewer crossings) and adds the expected slowdown.",
+            "trained_on": "2025-08-01 to 2025-08-31",
+            "check": {"train": e.get("train"), "test": e.get("test"), "match": e.get("match"),
+                      "precision": {k: v["precision"] for k, v in e.get("bands", {}).items()}}}
+
+
+def pred_days(date, days):
+    start = datetime.date.fromisoformat(date) if date else (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5)).date()
+    return [start + datetime.timedelta(days=i) for i in range(days)]
+
+
+@app.get("/predict/routes/{from_id}/{to_id}", tags=["predict"])
+def predict_route(
+    from_id: str, to_id: str,
+    date: str | None = Query(None, description="First day, YYYY-MM-DD (default: today, Maldives time)"),
+    days: int = Query(1, ge=1, le=14, description="Number of days"),
+    min_p: float = Query(0.3, ge=0, le=1, description="Lowest probability to return"),
+):
+    """Predicted departures between two places for any day: time, arrival, probability and the boats that usually run it."""
+    f, t = place_or_404(from_id), place_or_404(to_id)
+    out = []
+    for d in pred_days(date, days):
+        deps, sea = predict_board("t.from_id = %s AND t.to_id = %s", (from_id, to_id), d, min_p, f["region"])
+        out.append({"date": d.isoformat(), "weekday": DOW[d.isoweekday() - 1], "sea": sea, "departures": deps})
+    return {"from_id": from_id, "from_name": f["name"], "to_id": to_id, "to_name": t["name"], "days": out, "model": model_info()}
+
+
+@app.get("/predict/places/{place_id}", tags=["predict"])
+def predict_place(
+    place_id: str,
+    date: str | None = Query(None, description="First day, YYYY-MM-DD (default: today, Maldives time)"),
+    days: int = Query(1, ge=1, le=7, description="Number of days"),
+    min_p: float = Query(0.3, ge=0, le=1, description="Lowest probability to return"),
+):
+    """Predicted departure and arrival board of one place for any day."""
+    p = place_or_404(place_id)
+    out = []
+    for d in pred_days(date, days):
+        deps, sea = predict_board("t.from_id = %s", (place_id,), d, min_p, p["region"])
+        arrs, _ = predict_board("t.to_id = %s", (place_id,), d, min_p, p["region"])
+        out.append({"date": d.isoformat(), "weekday": DOW[d.isoweekday() - 1], "sea": sea, "departures": deps,
+                    "arrivals": sorted(arrs, key=lambda o: (o["arrives"], o["from_id"]))})
+    return {"place": place_id, "name": p["name"], "days": out, "model": model_info()}
 
 
 _forecast_cache: dict = {}

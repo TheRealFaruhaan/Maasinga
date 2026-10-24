@@ -7,7 +7,7 @@ Stop at sea: a speedboat stops for 20 min to 4 h more than 3 km from any inhabit
 more than 1 km from any busy site. These are candidates only: some may be fishing, diving or
 waiting; each needs checking against Coast Guard records.
 
-Output: dashboard/public/data/safety.json
+Output: data/out/safety.json
 """
 import json
 from importlib import import_module

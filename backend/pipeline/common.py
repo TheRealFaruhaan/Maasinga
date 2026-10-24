@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW = Path(os.environ.get("MAASINGA_RAW", ROOT / "data" / "raw"))
 WORK = ROOT / "data" / "work"
 REF = ROOT / "pipeline" / "reference"
-OUT = ROOT / "dashboard" / "public" / "data"
+OUT = ROOT / "data" / "out"  # processed data files, loaded into the database by api/seed.py
 
 WORK.mkdir(parents=True, exist_ok=True)
 OUT.mkdir(parents=True, exist_ok=True)

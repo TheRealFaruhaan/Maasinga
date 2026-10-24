@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API, logout, token } from "./auth";
 
-// Shapes of the static files the Python pipeline writes to /public/data.
+// Shapes of the data files the Python pipeline writes to data/out (served by the API).
 
 export type RegionKey = "north" | "central" | "midsouth" | "south";
 
@@ -123,9 +124,7 @@ export type GeoJSON = { type: "FeatureCollection"; features: { type: "Feature"; 
 
 const cache = new Map<string, Promise<unknown>>();
 
-// The Maasinga API (api/ folder). When set, data comes from it; the static copy in /data
-// is the fallback, so the dashboard still works if the API is down.
-const API = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+// All data comes from the Maasinga API (api/ folder). Most routes need a login (see lib/auth.ts).
 
 // Data file name to API endpoint.
 const ENDPOINT: Record<string, string> = {
@@ -144,7 +143,10 @@ const ENDPOINT: Record<string, string> = {
 };
 
 function get(url: string) {
-  return fetch(url).then((r) => {
+  const t = token();
+  return fetch(url, { headers: t ? { Authorization: `Bearer ${t}` } : {} }).then((r) => {
+    // An expired or revoked login: back to the login screen.
+    if (r.status === 401) logout();
     if (!r.ok) throw new Error(`${url}: ${r.status}`);
     return r.json();
   });
@@ -152,11 +154,12 @@ function get(url: string) {
 
 export function load<T>(name: string): Promise<T> {
   if (!cache.has(name)) {
-    const fromApi = API && ENDPOINT[name] ? get(`${API}${ENDPOINT[name]}`) : Promise.reject(new Error("no API"));
-    cache.set(
-      name,
-      fromApi.catch(() => get(`/data/${name}`)),
-    );
+    // A file name maps to its dataset endpoint; a name that starts with "/" is an API path.
+    const path = name.startsWith("/") ? name : ENDPOINT[name];
+    const p = API && path ? get(`${API}${path}`) : Promise.reject(new Error(`No API for ${name}`));
+    // A failed load is not kept, so it is tried again after the next login.
+    p.catch(() => cache.delete(name));
+    cache.set(name, p);
   }
   return cache.get(name) as Promise<T>;
 }
@@ -223,6 +226,28 @@ export interface HarbourData {
   origins: { id: string; name: string; lat: number; lon: number; n: number }[];
   hours: number[];
   days: { d: string; boats: number }[];
+}
+
+/** One North Harbour boat over August (API /harbour/boats/{code}/timeline). Times are Maldives local time. */
+export interface HarbourTimeline {
+  code: string;
+  name: string | null;
+  type: "fast" | "dhoni" | "slow" | null;
+  t0: string;
+  step_min: number;
+  km: (number | null)[];
+  stops: { arr: string; dep: string; place: string | null; name: string | null; male: boolean; harbour: boolean; km: number; minutes: number }[];
+  trips: { left: string; back: string; hours: number; calls: string[]; furthest: string | null; furthest_km: number | null }[];
+  projection: null | {
+    from: "in Male" | "away";
+    leaves: string | null;
+    back: string;
+    median_stay_in_male_h: number;
+    median_trip_h: number;
+    based_on_trips: number;
+    today?: { leaves: string; back: string; note: string };
+  };
+  places: Record<string, { id: string; name: string; lat: number; lon: number }>;
 }
 
 /** Display a number string with a true minus sign (U+2212), so "-0.89" does not read as a dash. */

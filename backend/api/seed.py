@@ -1,6 +1,6 @@
 """Load the Maasinga data into PostgreSQL.
 
-Reads the files the pipeline writes to dashboard/public/data and fills the tables in
+Reads the files the pipeline writes to data/out and fills the tables in
 schema.sql. Safe to re-run: it drops and recreates the "maasinga" schema each time.
 
 Usage: DATABASE_URL=postgresql://user:pass@host:5432/maasinga python seed.py [data dir]
@@ -15,9 +15,11 @@ import psycopg
 from dotenv import load_dotenv
 from psycopg.types.json import Jsonb
 
+from app.passwords import hash_password
+
 HERE = Path(__file__).resolve().parent
 load_dotenv(HERE / ".env")  # api/.env, if present
-DATA = Path(sys.argv[1] if len(sys.argv) > 1 else (os.environ.get("DATA_DIR") or HERE.parent / "dashboard" / "public" / "data"))
+DATA = Path(sys.argv[1] if len(sys.argv) > 1 else (os.environ.get("DATA_DIR") or HERE.parent / "data" / "out"))
 DB = os.environ.get("DATABASE_URL")
 if not DB:
     sys.exit("Set DATABASE_URL in api/.env or the environment (see api/.env.example)")
@@ -44,6 +46,11 @@ def main():
 
     with psycopg.connect(DB) as con, con.cursor() as cur:
         cur.execute((HERE / "schema.sql").read_text())
+        # Logins live in their own schema and survive every seed. ADMIN_USERNAME/ADMIN_PASSWORD create the first admin once.
+        cur.execute((HERE / "auth.sql").read_text())
+        if os.environ.get("ADMIN_PASSWORD"):
+            cur.execute("INSERT INTO auth.users (username, password_hash, role) VALUES (%s, %s, 'admin') ON CONFLICT (username) DO NOTHING",
+                        (os.environ.get("ADMIN_USERNAME") or "admin", hash_password(os.environ["ADMIN_PASSWORD"])))
         cur.execute("SET search_path TO maasinga")
 
         meta = {
@@ -57,6 +64,7 @@ def main():
             "signal.total": signal["total"],
             "harbour.polygon": harbour["polygon"],
             "harbour.entered": harbour["entered"],
+            "predict.eval": read("predict-eval.json"),
         }
         for label in ("calm", "rough"):
             rp = read(f"replay-{label}.json")
@@ -124,6 +132,17 @@ def main():
         weather = read("weather.json")
         copy(cur, "weather_hourly", ["region", "t", "wave", "gust"], [(k, *h) for k, w in weather.items() for h in w["hourly"]])
         copy(cur, "weather_daily", ["region", "day", "wave", "gust", "rain"], [(k, *d) for k, w in weather.items() for d in w["daily"]])
+
+        copy(cur, "contacts", ["place_id", "category", "name", "phone", "ord"],
+             [(pid, cat, c["name"], c["phone"], i) for pid, cats in read("contacts.json").items() for cat, cs in cats.items() for i, c in enumerate(cs)])
+
+        copy(cur, "harbour_timelines", ["code", "data"], [(c, Jsonb(v)) for c, v in read("harbour-timelines.json").items()])
+
+        apps = json.loads((HERE / "apps.json").read_text())["apps"]
+        copy(cur, "apps", ["id", "category", "name", "name_dv", "blurb_en", "blurb_dv", "color", "initials", "icon", "ios_url",
+                           "android_package", "web_url", "hotline", "places", "ord"],
+             [(a["id"], a["category"], a["name"], a["name_dv"], a["blurb"]["en"], a["blurb"]["dv"], a["color"], a["initials"], a["icon"],
+               a["iosUrl"], a["androidPackage"], a["webUrl"], a["hotline"], a["places"], i) for i, a in enumerate(apps)])
 
         copy(cur, "map_layers", ["name", "geojson"], [(n, Jsonb(read(f"{n}.json"))) for n in ("land", "reefs")])
         con.commit()

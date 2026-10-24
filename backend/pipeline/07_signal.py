@@ -5,7 +5,7 @@ reaches the server more than 5 minutes after the fix was taken shows a place wit
 We use moving boats only (over 5 kn) and skip the hours of a server outage (step 4).
 Cell: 0.05 degrees (about 5.5 km). A cell needs 300 pings from 5 or more boats.
 
-Output: dashboard/public/data/signal.json
+Output: data/out/signal.json
 """
 from common import REF, WORK, db, write_json
 

@@ -5,7 +5,7 @@ Usual departures: 15-minute slots in which the route had a departure on at least
 Travel Index: boat departures per week per 1,000 residents (Census 2022), per inhabited island.
 Only boats that carry a FollowMe tracker are counted, so the index is relative, not a full count.
 
-Output: dashboard/public/data/network.json
+Output: data/out/network.json
 """
 import json
 

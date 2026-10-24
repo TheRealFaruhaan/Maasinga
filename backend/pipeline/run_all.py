@@ -17,6 +17,8 @@ STEPS = [
     "analysis/north_harbour.py",
     "10_boat_names.py",
     "11_app_data.py",
+    "12_predict.py",
+    "13_harbour_timeline.py",
 ]
 
 sys.path.insert(0, str(HERE))

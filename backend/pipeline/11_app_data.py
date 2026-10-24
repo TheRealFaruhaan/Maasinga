@@ -1,10 +1,12 @@
 """Step 11: extra data for apps that read the API (boats, every trip, weather, island links).
 
-Outputs (in dashboard/public/data, loaded into the database by api/seed.py):
+Outputs (in data/out, loaded into the database by api/seed.py):
 - trips.json: every trip in August, [boat code, from, to, departure "YYYY-MM-DDTHH:MM", minutes].
 - boats.json: one row per boat: code, name, type, kind and operator (team name list), home place, trips, routes, days active.
 - weather.json: per sea region, hourly waves and gusts and daily waves, gusts and rain (from pipeline/reference/weather).
 - places-extra.json: per place: sea region, and for islands the id and Dhivehi name used by the team's web app.
+- contacts.json: DEMO contacts per inhabited island (cargo, speedboat, ferry, shop). Names follow the web app's mock lists;
+  numbers are placeholders (7XXXXXX / 9XXXXXX), never real numbers, except the public MTCC hotline 1650.
 
 The web app's island list (web/src/data/islands.json at the repo root) is matched to the census islands once and
 kept in pipeline/reference/web_islands.csv, so later runs do not need the web folder.
@@ -14,6 +16,7 @@ import difflib
 import hashlib
 import importlib
 import json
+import random
 import re
 
 from common import OUT, RAW, REF, ROOT, WORK, db, write_json
@@ -24,6 +27,25 @@ WEB_CSV = REF / "web_islands.csv"
 NAMES_CSV = RAW / "imei_name_guess_all.csv"
 MALE_CITY = {"Male": "MLE.Male", "Hulhumale": "MLE.Hulhumale", "Villimale": "MLE.Vilimale", "Hulhule": "MLE.Hulhule"}
 BY_HAND = {("L", "Gan"): "L.Gamu"}  # the census lists Gan (Laamu) under its locality Gamu
+
+# Demo contacts: the same names and categories as the web app (web/src/lib/mock.ts).
+CONTACT_NAMES = {
+    "cargo": ["Ferien", "Zillion", "Bodu Logistics", "Raajje Cargo", "Atoll Movers", "Island Freight", "Dhoni Cargo"],
+    "speedboat": ["Blue Wave", "Atoll Express", "Sea Link", "Fast Ferry", "Reef Runner"],
+    "ferry": ["MTCC Ferry", "Ulhiashi Dhoni", "Sazee Transport", "Furamaa Dhoni", "Island Ferry"],
+    "shop": ["Harbour Mart", "Jetty Hardware", "Bandaara Store", "Atoll Mart", "Fihaara"],
+}
+
+
+def demo_contacts(place_id, island):
+    """Same contacts for the same island on every run (seeded by the place id)."""
+    r = random.Random(int(hashlib.md5(place_id.encode()).hexdigest()[:8], 16))
+    out = {}
+    for kind, pool in CONTACT_NAMES.items():
+        names = r.sample(pool, len(pool))[: 2 if kind == "ferry" else r.randint(1, 3)]
+        out[kind] = [{"name": n if n == "MTCC Ferry" else f"{n} {island}", "phone": "1650" if n == "MTCC Ferry" else f"{r.choice('79')}XXXXXX"}
+                     for n in names]
+    return out
 
 
 def code(imei):
@@ -122,3 +144,7 @@ if __name__ == "__main__":
         wid, dv = web.get(p["id"], (None, None))
         extra[p["id"]] = {"region": region, "web_id": wid, "name_dv": dv}
     write_json("places-extra.json", extra)
+
+    # Demo contacts for every inhabited island and Male City area.
+    write_json("contacts.json", {p["id"]: demo_contacts(p["id"], p["name"])
+                                 for p in json.load(open(OUT / "network.json"))["places"] if p["kind"] == "island"})

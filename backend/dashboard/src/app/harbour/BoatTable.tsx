@@ -13,7 +13,7 @@ type Key = "id" | "stays" | "tripsIn" | "days" | "medianMin" | "longestMin" | "h
 const AUGUST = Array.from({ length: 31 }, (_, i) => i + 1);
 
 /** Rich sortable list of harbour boats, 10 per page. */
-export default function BoatTable({ data, filter }: { data: HarbourData; filter: Filter }) {
+export default function BoatTable({ data, filter, picked, onPick }: { data: HarbourData; filter: Filter; picked?: string | null; onPick?: (code: string) => void }) {
   const [page, setPage] = useState(0);
   const [seen, setSeen] = useState(filter);
   if (seen !== filter) {
@@ -64,7 +64,13 @@ export default function BoatTable({ data, filter }: { data: HarbourData; filter:
           const on = new Set(b.dayList);
           const from = b.origins[0] ? names.get(b.origins[0][0]) : undefined;
           return (
-            <li key={b.id} className={s.row} data-type={b.type}>
+            <li
+              key={b.id}
+              className={`${s.row} ${onPick ? s.pickable : ""}`}
+              data-type={b.type}
+              aria-current={picked === b.id ? "true" : undefined}
+              onClick={onPick ? () => onPick(b.id) : undefined}
+            >
               <span className={s.boat}>
                 <span className={s.disc}>
                   <BoatIcon type={b.type} />

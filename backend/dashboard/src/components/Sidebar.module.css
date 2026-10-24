@@ -160,3 +160,9 @@
     border-bottom: 1px solid var(--border);
   }
 }
+
+.who {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--faint);
+}

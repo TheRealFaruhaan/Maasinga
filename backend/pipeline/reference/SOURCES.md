@@ -27,7 +27,7 @@
 - OSM data is under ODbL; Wikidata is CC0. Retrieved 2026-10-24.
 
 ## Basemap
-Files: dashboard/public/data/land.json, reefs.json, resorts.json. Source: OpenStreetMap via Overpass API (https://overpass-api.de/api/interpreter), bbox (-1,72,8,74.5), retrieved 2026-10-24. Licence: OpenStreetMap contributors, ODbL.
+Files: data/out/land.json, reefs.json, resorts.json. Source: OpenStreetMap via Overpass API (https://overpass-api.de/api/interpreter), bbox (-1,72,8,74.5), retrieved 2026-10-24. Licence: OpenStreetMap contributors, ODbL.
 - Land, islands: `(way["place"~"^(island|islet)$"](bbox); relation["place"~"^(island|islet)$"](bbox);); out geom;`
 - Land, coastline: `way["natural"="coastline"](bbox); out geom;` (closed or stitched counterclockwise rings not already covered by an island polygon; 3 coarse rings that enclose whole reefs dropped)
 - Reefs: `(way["natural"="reef"](bbox); relation["natural"="reef"](bbox);); out geom;`

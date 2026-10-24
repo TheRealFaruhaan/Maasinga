@@ -7,7 +7,7 @@ MACL: international arrivals per hour of the day (actual time of arrival), Augus
 2025, the same months one year before the Avas data. MACL data ends in July 2026, so the two
 sets do not overlap in time; we compare daily patterns, not single days.
 
-Output: dashboard/public/data/taxi.json
+Output: data/out/taxi.json
 """
 from common import RAW, db, write_json
 

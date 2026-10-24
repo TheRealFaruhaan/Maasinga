@@ -6,10 +6,71 @@ Use this file as the reference for any app that reads the API (including AI codi
 
 - Base URL: `https://maasinga-api.devoup.com`
 - Interactive docs (Swagger): `https://maasinga-api.devoup.com/docs`. They list the endpoints and parameters but not the response shapes; this file has the shapes.
-- Methods: `GET` only. No login, no key, no cookies.
+- Methods: `GET` for data, `POST` and `DELETE` only for logins and users.
+- **Login:** public routes need nothing. Routes marked 🔒 need `Authorization: Bearer <token>` from `POST /auth/login`. See [Login and permissions](#login-and-permissions).
 - CORS: every origin is allowed (`Access-Control-Allow-Origin: *`), so a browser app on any domain or `localhost` can call it.
 - Responses are gzipped when the client asks (browsers do).
-- Errors: `404` with `{"detail": "..."}` when an id or name does not exist. `502` from `/forecast` when the forecast service does not answer.
+- Errors: `{"detail": "..."}` with `401` (no login, wrong password, expired or bad token), `403` (role too low), `404` (unknown id or name), `502` (`/forecast`: the forecast service did not answer).
+
+## Login and permissions
+
+| Who | Routes |
+|---|---|
+| **Public** (no login) | `/health`, `/apps`, `/static/apps/*`, `/places`, `/places/{id}`, `/places/{id}/schedule`, `/places/{id}/contacts`, `/predict/routes/{from}/{to}`, `/predict/places/{id}`, `/routes`, `/routes/{from}/{to}`, `/weather`, `/weather/{region}/{date}`, `/forecast`, `/map/land`, `/map/reefs`, `POST /auth/login` |
+| 🔒 **policy** (and admin) | `/boats`, `/boats/{code}`, `/trips`, `/boat-names`, `/harbour/boats/{code}/timeline`, all dataset routes (`/network`, `/paths`, `/route-boats`, `/sea`, `/safety`, `/signal`, `/harbour`, `/replay/*`), `/auth/me` |
+| 🔒 **admin** | `/auth/users` (list, add, delete users) |
+
+Flow:
+1. `POST /auth/login` with JSON `{"username": "...", "password": "..."}`.
+2. Keep `access_token` (a JWT, valid 12 hours, see `expires_at` in Unix seconds).
+3. Send it on protected calls: `Authorization: Bearer <access_token>`.
+4. On `401`, log in again. There is no refresh token. Deleting a user or changing their role works at once, even for tokens already given out.
+
+#### `POST /auth/login`
+```json
+// request
+{"username": "farhan", "password": "secret-password"}
+// 200
+{"access_token": "eyJhbGciOi...", "token_type": "bearer", "expires_at": 1792839600, "user": {"username": "farhan", "role": "policy"}}
+// 401
+{"detail": "Wrong username or password"}
+```
+
+#### `GET /auth/me` 🔒
+```json
+{"username": "farhan", "role": "policy"}
+```
+
+#### `GET /auth/users` 🔒 admin
+```json
+[{"username": "admin", "role": "admin", "created": "2026-10-24T15:10"}]
+```
+
+#### `POST /auth/users` 🔒 admin
+Add a user, or set a new password and role for an existing one. `role`: `policy` (default) or `admin`. Password: 8 or more characters. Username: 3 to 64 of `A-Z a-z 0-9 _ . @ -`.
+```json
+// request
+{"username": "farhan", "password": "secret-password", "role": "policy"}
+// 201
+{"username": "farhan", "role": "policy"}
+```
+
+#### `DELETE /auth/users/{username}` 🔒 admin
+```json
+{"deleted": "farhan"}
+```
+An admin cannot delete themself.
+
+```ts
+// Login in a browser app
+const r = await fetch(API + "/auth/login", {
+  method: "POST", headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ username, password }),
+});
+if (!r.ok) throw new Error(r.status === 401 ? "Wrong username or password" : String(r.status));
+const { access_token } = await r.json();
+const boats = await fetch(API + "/boats?place=K.Maafushi", { headers: { Authorization: `Bearer ${access_token}` } }).then((r) => r.json());
+```
 
 ## Conventions
 
@@ -36,13 +97,16 @@ Use this file as the reference for any app that reads the API (including AI codi
 const API = "https://maasinga-api.devoup.com";
 const get = <T,>(path: string): Promise<T> =>
   fetch(API + path).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
+const getAuth = <T,>(path: string): Promise<T> =>
+  fetch(API + path, { headers: { Authorization: `Bearer ${token}` } }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
 
 const islands = await get<Place[]>("/places?kind=island");                    // island picker, nearest island from GPS
 const board = await get<Schedule>("/places/K.Maafushi/schedule");             // departure and arrival board of one island
 const route = await get<RouteDetail>("/routes/K.Maafushi/MLE.Male");          // usual times, boats per time, track
 const sea = await get<Forecast>("/forecast?place=K.Maafushi");                // live sea rating for 3 days
-const boat = await get<BoatDetail>("/boats/284E35");                          // one boat: routes, usual times, recent trips
-const today = await get<Trip[]>("/trips?from=K.Maafushi&to=MLE.Male&date=2025-08-10"); // real trips on one day
+// Protected (policy login): send the token, see "Login and permissions"
+const boat = await getAuth<BoatDetail>("/boats/284E35");                      // one boat: routes, usual times, recent trips
+const today = await getAuth<Trip[]>("/trips?from=K.Maafushi&to=MLE.Male&date=2025-08-10"); // real trips on one day
 ```
 
 How app screens map to the API:
@@ -52,14 +116,18 @@ How app screens map to the API:
 | Island list, nearest island from GPS | `/places?kind=island` | 187 islands with `lat`, `lon`, `atoll`, `pop`, `region`, `web_id`, `name_dv`. |
 | Island page | `/places/{id}` | Routes leaving and arriving, boats based there, sea region. |
 | Departure board ("next boat") | `/places/{id}/schedule` | Every usual departure and arrival with time, destination and the boats that usually run it. Next departure = first `departs` after now. |
-| Trip between two islands | `/routes/{from}/{to}` | Usual departures with `arrives` and `boats`, typical crossing time, all boats, map track. `404` if no route. |
+| Trip between two islands | `/routes/{from}/{to}` | Usual departures with `arrives` and `boats`, typical crossing time, all boats, map track, one-stop connections (`via`). Pairs with few trips return `listed: false`. |
 | Launch or boat (dhoni) | `type` / `boat_type` / `main_type` | `fast` for launch; `dhoni` or `slow` for boat and cargo. |
-| Boats serving an island | `/boats?place={id}` | Boats with trips from or to the island, most trips first. Add `&type=fast`. |
-| Boat page | `/boats/{code}` | Routes it runs with its own usual times, trips per day, last 20 trips. |
-| Search boats by name | `/boats?q=ferry` | Part of the name or code. |
-| Real trip history | `/trips?...` | Filter by `from`, `to`, `boat`, `date`. |
+| Boats serving an island | `/places/{id}/schedule` (public), `/boats?place={id}` (🔒) | The schedule lists the boats per departure. The boats list (login) has every boat with trips from or to the island. |
+| Boat page (🔒) | `/boats/{code}` | Routes it runs with its own usual times, trips per day, last 20 trips. |
+| Search boats by name (🔒) | `/boats?q=ferry` | Part of the name or code. |
+| Real trip history (🔒) | `/trips?...` | Filter by `from`, `to`, `boat`, `date`. |
 | Is the sea rough now? | `/forecast?place={id}` | Live forecast with a calm, choppy or rough rating per day. |
 | Weather in August | `/weather?place={id}`, `/weather/{region}/{date}` | Daily and hourly waves, gusts, rain, and how fast boats ran. |
+| Departures on a chosen day (future dates) | `/predict/routes/{from}/{to}?date=`, `/predict/places/{id}?date=` | Predicted times with a probability, from the August pattern for that weekday plus the live sea forecast. |
+| Quick contacts (cargo, speedboat, ferry, shop) | `/places/{id}/contacts` | **Demo** names and placeholder numbers. |
+| One harbour boat over time (distance from Male, calls, next trip) (🔒) | `/harbour/boats/{code}/timeline` | Boat codes from `/harbour` (`boats[].id`). |
+| Taxi apps, ferry ticket app (store links, hotline, icon) | `/apps?place={id}` or `/apps?category=taxi` | Same fields as the web app's `AppLink`. Icons hosted by the API. |
 | Dead zones, rough-sea crossings, harbour | `/signal`, `/safety`, `/harbour` | Whole datasets (see below). |
 
 ## App endpoints
@@ -121,11 +189,14 @@ Routes, busiest first. Both filters are optional.
 - `trips`: trips in August. `boats`: different boats. `median_min`: typical trip minutes. `late_pct`: % of positions on this route sent late (no phone signal). `main_type`: most common boat type.
 
 #### `GET /routes/{from}/{to}`
-One route with its usual times, the boats per time, all boats and the track.
+One route with its usual times, the boats per time, all boats, the track and connections with one stop.
+Every pair of known places answers `200`; `404` only when a place id does not exist.
+- `listed: true`: a route with 20 or more trips in August (full data).
+- `listed: false`: fewer trips (or none). It still has `trips`, `boats_count`, `median_min`, `main_type`, `hours` and `boats` from the real trips, but `departures` and `path` are empty and `late_pct` is `null`. Show `via` as the alternative.
 ```json
 {
-  "from_id": "K.Maafushi", "to_id": "MLE.Male", "from_name": "Maafushi", "to_name": "Male",
-  "trips": 155, "median_min": 51.0, "late_pct": 0.4, "main_type": "fast",
+  "from_id": "K.Maafushi", "to_id": "MLE.Male", "from_name": "Maafushi", "to_name": "Male", "listed": true,
+  "trips": 155, "boats_count": 34, "median_min": 51.0, "late_pct": 0.4, "main_type": "fast",
   "departures": [
     {"time": "17:15", "arrives": "18:06", "days": 28,
      "boats": [{"code": "284E35", "name": "ESCAPE QUEEN 🇲🇻", "type": "fast", "days": 14}, {"code": "DA6CD8", "name": "ESCAPE QUEEN 🇲🇻", "type": "fast", "days": 13}]}
@@ -133,15 +204,18 @@ One route with its usual times, the boats per time, all boats and the track.
   "hours": [2, 1, 0, 0, 1, 2, 12, 18, 1, 2, 4, 15, 4, 21, 2, 1, 4, 30, 5, 8, 21, 1, 0, 0],
   "boats": [{"boat_code": "284E35", "boat_name": "ESCAPE QUEEN 🇲🇻", "boat_type": "fast", "boat_kind": "Speed Boat",
              "trips": 42, "median_min": 48, "last_seen": "2025-08-31"}],
-  "path": [734894, 39433, 734882, 39454]
+  "path": [734894, 39433, 734882, 39454],
+  "via": [{"via_id": "MLE.Hulhule", "via_name": "Hulhule", "first_trips": 186, "second_trips": 558,
+           "first_min": 39.0, "second_min": 8.0, "first_type": "fast", "second_type": "fast"}]
 }
 ```
 - `departures`: usual departures (see Conventions), with arrival time and up to 3 boats that ran them.
 - `hours`: all departures in August per hour of day.
 - `boats`: every boat on the route, most trips first.
 - `path`: the real GPS track of one typical trip, one point a minute.
+- `via`: up to 5 connections with one stop (listed route `from` -> `via_id`, then listed route `via_id` -> `to`), busiest first. `first_*` and `second_*` describe the two legs. Empty when there is none.
 
-#### `GET /boats?type=&home=&place=&q=&limit=100&offset=0`
+#### `GET /boats?type=&home=&place=&q=&limit=100&offset=0` 🔒
 Boats, most trips first. All filters optional. `type`: `fast`, `dhoni`, `slow`. `home`: place id the boat is based at. `place`: place id it made trips from or to. `q`: part of the name or code. `limit` up to 2000.
 ```json
 [
@@ -151,7 +225,7 @@ Boats, most trips first. All filters optional. `type`: `fast`, `dhoni`, `slow`. 
 ```
 - `home`: the place it stopped at most. `routes`: different from-to pairs it ran. `days`: days with a trip. 1,613 boats made trips.
 
-#### `GET /boats/{code}`
+#### `GET /boats/{code}` 🔒
 One boat with its routes, its own usual times, trips per day and its last 20 trips.
 ```json
 {
@@ -169,7 +243,7 @@ One boat with its routes, its own usual times, trips per day and its last 20 tri
 
 Note: `routes` is a number in `/boats` and a list in `/boats/{code}`. Boat names can hold emoji (flags).
 
-#### `GET /trips?from=&to=&boat=&date=&limit=100&offset=0&latest=false`
+#### `GET /trips?from=&to=&boat=&date=&limit=100&offset=0&latest=false` 🔒
 Real trips in August 2025 (68,840 in total), in departure order. All filters optional. `date`: `YYYY-MM-DD`. `limit` up to 5000. `latest=true`: newest first.
 ```json
 [
@@ -203,7 +277,89 @@ Hourly waves and gusts for one region and day.
 - `loss_pct`: expected speedboat slowdown against a calm day (`calm_wave` = the 25th percentile of August waves).
 - `rating`: `calm` (under 5%), `choppy` (5 to 10%), `rough` (over 10%).
 
-#### `GET /boat-names`
+#### `GET /predict/routes/{from}/{to}?date=&days=1&min_p=0.3`
+Predicted departures between two places for any day (default today, Maldives time). `days`: 1 to 14. `min_p`: lowest probability returned.
+```json
+{
+  "from_id": "K.Maafushi", "from_name": "Maafushi", "to_id": "MLE.Male", "to_name": "Male",
+  "days": [{
+    "date": "2026-10-24", "weekday": "Sat",
+    "sea": {"d": "2026-10-24", "wave": 1.64, "loss_pct": 2.6, "rating": "calm"},
+    "departures": [
+      {"departs": "13:45", "arrives": "14:33", "from_id": "K.Maafushi", "from_name": "Maafushi", "to_id": "MLE.Male", "to_name": "Male",
+       "probability": 0.74, "confidence": "very likely", "slot": "13:45", "minutes": 48,
+       "runs_on": ["Mon", "Tue", "Wed", "Thu", "Sat"],
+       "boats": [{"code": "284E35", "name": "ESCAPE QUEEN 🇲🇻", "type": "fast", "days": 7}]}
+    ]
+  }],
+  "model": {"method": "...", "trained_on": "2025-08-01 to 2025-08-31",
+            "check": {"train": "2025-08-01 to 2025-08-24", "test": "2025-08-25 to 2025-08-31",
+                      "precision": {"very_likely": 0.836, "likely": 0.644, "possible": 0.419}}}
+}
+```
+- **Model:** for each listed route and 15-minute departure slot, `probability` = how often boats left in that slot on that weekday in August 2025, pulled toward the all-days rate: `(k_weekday + 2 * k_all / 31) / (n_weekday + 2)`.
+- `departs`: the median real departure minute in that slot. `arrives` and `minutes`: the median trip time, plus the forecast slowdown.
+- `confidence`: `very likely` (0.7 or more), `likely` (0.5 to 0.7), `possible` (0.3 to 0.5).
+- `runs_on`: weekdays with a probability of 0.5 or more for that slot.
+- `sea`: the live forecast for that day when it is within the next 3 days (else `null`). On a `rough` day the probability is lowered by the drop in crossings seen on rough days in August (about 22%).
+- **How good it is:** trained on 1 to 24 August and checked on 25 to 31 August (each weekday once). A prediction counts as right when a boat left on that route that day within 15 minutes of the predicted time. Right: 84% of `very likely`, 64% of `likely`, 42% of `possible`. Full numbers: `model.check`.
+- It predicts regular departures only; one-off trips are not predicted. It cannot know about holidays, breakdowns or new timetables.
+
+#### `GET /predict/places/{id}?date=&days=1&min_p=0.3`
+The predicted departure and arrival board of one place. `days`: 1 to 7. Each day has `date`, `weekday`, `sea`, `departures[]` and `arrivals[]` (same item fields as above), plus `model`.
+
+#### `GET /places/{id}/contacts?category=`
+**Demo** quick contacts for an island, by category: `cargo`, `speedboat`, `ferry`, `shop`. Names follow the web app's mock lists. Numbers are placeholders (`7XXXXXX`, `9XXXXXX`), never real numbers, except the public MTCC hotline `1650`. The same island always gets the same contacts.
+```json
+{"place": "K.Maafushi", "demo": true, "contacts": {
+  "cargo": [{"name": "Zillion Maafushi", "phone": "9XXXXXX"}],
+  "speedboat": [{"name": "Reef Runner Maafushi", "phone": "9XXXXXX"}],
+  "ferry": [{"name": "Island Ferry Maafushi", "phone": "9XXXXXX"}, {"name": "MTCC Ferry", "phone": "1650"}],
+  "shop": [{"name": "Harbour Mart Maafushi", "phone": "9XXXXXX"}]}}
+```
+Male City areas (`MLE.Male`, `MLE.Hulhumale`, `MLE.Vilimale`, `MLE.Hulhule`) get demo contacts the same way as every other island.
+
+#### `GET /harbour/boats/{code}/timeline` 🔒
+One North Harbour boat over August 2025, for an "every trip as distance from Male" chart. Codes: the 119 boats in `/harbour` (`boats[].id`). `404` for other codes.
+```json
+{
+  "code": "CD6A3A", "name": "Aliraastha", "type": "dhoni", "kind": "Supply Dhoni", "operator": null,
+  "t0": "2025-08-01T00:00", "step_min": 30,
+  "km": [null, null, "...", 27.0, 20.1, 10.0, 2.0, "... 1,488 values"],
+  "stops": [{"arr": "2025-08-02T07:18", "dep": "2025-08-02T07:30", "place": "K.Thulusdhoo", "name": "Thulusdhoo",
+             "male": false, "harbour": false, "km": 27.0, "minutes": 12}],
+  "trips": [{"left": "2025-08-02T15:29", "back": "2025-08-03T09:04", "hours": 17.6, "calls": ["K.Thulusdhoo"],
+             "furthest": "K.Thulusdhoo", "furthest_km": 27.0}],
+  "projection": {"from": "in Male", "leaves": "2025-08-31T15:28", "back": "2025-09-01T13:04",
+                 "median_stay_in_male_h": 6.6, "median_trip_h": 21.6, "based_on_trips": 22,
+                 "today": {"leaves": "2026-10-25T02:52", "back": "2026-10-26T00:28", "note": "the August cycle repeated to today; a pattern, not a schedule"}},
+  "places": {"K.Thulusdhoo": {"id": "K.Thulusdhoo", "name": "Thulusdhoo", "lat": 4.373, "lon": 73.6481}}
+}
+```
+- `km`: distance from Male (km) every `step_min` minutes from `t0` (local time): value `i` is at `t0 + i * 30 min`. A boat that sends nothing keeps its last value for up to 6 hours (lying still); after that `null` = no GPS (draw it hatched).
+- `stops`: every stop (10 minutes or more under 1.5 knots). `male: true` = in the Male area (within 15 km of Male: Male City, Thilafushi, Gulhifalhu), draw it as "time in Male". `harbour: true` = inside the North Harbour outline. `place` can be `null` (a stop at sea or an unnamed spot).
+- `trips`: each time the boat left the Male area and came back, with the islands it called at and the furthest point.
+- `projection` (only with 2 or more trips): the next departure and return after the last day of data, from the boat's median time in Male between trips and its median trip length. `today` repeats that cycle up to today: a pattern, not a schedule. `from: "away"` means the boat was out at the end of August (`leaves` is `null`).
+- Not in our data: MPL harbour or port lists.
+
+#### `GET /apps?category=&place=`
+Transport apps with store links, hotline and icon. Same field names as the web app's `AppLink` type (`web/src/lib/apps.ts`), plus `category`, `googlePlayUrl` and `places`.
+- `category`: `taxi` (Malé Taxi, Avas, Nala Taxi, Quick Mv) or `ferry` (RTL Travel: MTCC ferry and bus tickets).
+- `place`: only apps that serve that place. Taxi apps serve Male City (`MLE.Male`, `MLE.Hulhumale`, `MLE.Vilimale`, `MLE.Hulhule`); RTL Travel serves every island (`places: null`).
+```json
+[
+  {"id": "male-taxi", "category": "taxi", "name": "Malé Taxi", "name_dv": "މާލެ ޓެކްސީ",
+   "blurb": {"en": "Government taxi line · book or schedule", "dv": "ސަރުކާރުގެ ޓެކްސީ ލައިން"},
+   "color": "#C2413B", "initials": "MT", "icon": "https://maasinga-api.devoup.com/static/apps/male-taxi.jpg",
+   "iosUrl": "https://apps.apple.com/app/id6761259497", "androidPackage": "mv.mtcc.TaxiApp",
+   "googlePlayUrl": "https://play.google.com/store/apps/details?id=mv.mtcc.TaxiApp",
+   "webUrl": null, "hotline": "1655", "places": ["MLE.Male", "MLE.Hulhumale", "MLE.Vilimale", "MLE.Hulhule"]}
+]
+```
+- `icon`: full URL of a 256x256 JPEG hosted by the API (`/static/apps/{id}.jpg`).
+- The list is curated by the team (`backend/api/apps.json`), not from the boat data.
+
+#### `GET /boat-names` 🔒
 Display name for every boat code (1,776), `{code: name}`. Demo only.
 ```json
 {"00186F": "MALAS SPEED", "0177B0": "MTCC Rankaru"}
@@ -216,7 +372,7 @@ Display name for every boat code (1,776), `{code: name}`. Demo only.
 
 ## Dataset endpoints (whole files, for dashboards)
 
-These return the same JSON as the files in `backend/dashboard/public/data`. Field-by-field notes: [DATA.md](DATA.md).
+All need a **policy** login (🔒) except `/map/*`. They return the same JSON as the files in `backend/data/out`. Field-by-field notes: [DATA.md](DATA.md).
 
 | Endpoint | Size | Content |
 |---|---|---|
@@ -267,12 +423,15 @@ interface Schedule { place: PlaceId; departures: ScheduleItem[]; arrivals: Sched
 
 interface RouteDetail {
   from_id: PlaceId; to_id: PlaceId; from_name: string; to_name: string;
-  trips: number; median_min: number; late_pct: number; main_type: BoatType;
+  listed: boolean; // false: fewer than 20 trips; departures and path are empty
+  trips: number; boats_count: number; median_min: number | null; late_pct: number | null; main_type: BoatType | null;
   departures: { time: string; arrives: string; days: number; boats: SlotBoat[] }[];
   hours: number[]; // 24
   boats: { boat_code: BoatCode; boat_name: string | null; boat_type: BoatType; boat_kind: string | null;
            trips: number; median_min: number; last_seen: string }[];
   path: number[];  // [lon, lat, ...] x 10,000
+  via: { via_id: PlaceId; via_name: string; first_trips: number; second_trips: number; first_min: number; second_min: number;
+         first_type: BoatType; second_type: BoatType }[];
 }
 
 interface Boat {
@@ -303,14 +462,54 @@ interface Forecast {
 }
 
 type BoatNames = Record<BoatCode, string>;
+
+interface TransportApp {
+  id: string; category: "taxi" | "ferry"; name: string; name_dv: string | null;
+  blurb: { en: string; dv: string }; color: string; initials: string; icon: string | null;
+  iosUrl: string | null; androidPackage: string | null; googlePlayUrl: string | null;
+  webUrl: string | null; hotline: string | null; places: PlaceId[] | null; // null = every island
+}
+
+interface PredictedDeparture {
+  departs: string; arrives: string; from_id: PlaceId; from_name: string; to_id: PlaceId; to_name: string;
+  probability: number; confidence: "very likely" | "likely" | "possible"; slot: string; minutes: number;
+  runs_on: ("Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun")[];
+  boats: { code: BoatCode; name: string; type: BoatType; days: number }[];
+}
+interface PredictedDay {
+  date: string; weekday: string;
+  sea: { d: string; wave: number; loss_pct: number; rating: "calm" | "choppy" | "rough" } | null;
+  departures: PredictedDeparture[];
+  arrivals?: PredictedDeparture[]; // place board only
+}
+interface Prediction { days: PredictedDay[]; model: { method: string; trained_on: string; check: Record<string, unknown> } }
+
+type ContactCategory = "cargo" | "speedboat" | "ferry" | "shop";
+interface Contacts { place: PlaceId; demo: true; contacts: Record<ContactCategory, { name: string; phone: string }[]> }
+
+interface HarbourTimeline {
+  code: BoatCode; name: string | null; type: BoatType | null; kind: string | null; operator: string | null;
+  t0: string; step_min: number; km: (number | null)[];
+  stops: { arr: string; dep: string; place: PlaceId | null; name: string | null; male: boolean; harbour: boolean; km: number; minutes: number }[];
+  trips: { left: string; back: string; hours: number; calls: PlaceId[]; furthest: PlaceId | null; furthest_km: number | null }[];
+  projection: null | { from: "in Male" | "away"; leaves: string | null; back: string; median_stay_in_male_h: number; median_trip_h: number;
+                       based_on_trips: number; today?: { leaves: string; back: string; note: string } };
+  places: Record<PlaceId, { id: PlaceId; name: string; lat: number; lon: number }>;
+}
+
+interface LoginResult {
+  access_token: string; token_type: "bearer"; expires_at: number; // Unix seconds
+  user: { username: string; role: "policy" | "admin" };
+}
 ```
 
 ## What the API does not have
 
 - **Live boat positions or status** (docked, loading, arriving, ETA). Boat data is August 2025 history. Only the sea forecast is live.
-- **Dated timetables.** Usual departures come from August patterns, not from an operator timetable.
+- **Dated timetables.** Usual and predicted departures come from August patterns, not from an operator timetable.
+- **Real contact numbers.** `/places/{id}/contacts` is demo data.
 - **Jetty or berth names.** Stops are grouped per island.
-- **Dhivehi boat names, boat colours, phone numbers, fares, bus routes.** Not in any of our data.
+- **Dhivehi boat names, boat colours, fares, bus routes, other phone numbers.** Not in any of our data (only the hotlines in `/apps`).
 - **8 islands of the web app's list** have no match (`web_id` not in the API): HDh Kunburudhoo, HDh Maavaidhoo, Lh Felivaru, Dh Thinhuraa, Dh Vaanee, L Gaadhoo, GA Dhiyadhoo, GDh Maathodaa. They are not in the census island list we use.
 
 ## Changes
@@ -319,3 +518,8 @@ type BoatNames = Record<BoatCode, string>;
 |---|---|
 | 2026-10-24 | First version. `/boat-names` added. Harbour uses the smaller team outline. Weather in `/sea` from the team weather export (ERA5, ERA5-Ocean, NASA IMERG), with `points` per region. CORS open to all origins. |
 | 2026-10-24 | App endpoints: `/places/{id}`, `/places/{id}/schedule`, `/boats`, `/boats/{code}`, `/trips`, `/weather`, `/weather/{region}/{date}`, `/forecast` (live). `/places` adds `region`, `web_id`, `name_dv`. `/routes` adds a `to` filter. `/routes/{from}/{to}` adds names, `arrives` and `boats` per departure, and boat names and kinds. |
+| 2026-10-24 | Logins: `POST /auth/login` (JWT, 12 h), `/auth/me`, admin user routes `/auth/users`. Policy login now needed for `/boats`, `/boats/{code}`, `/trips`, `/boat-names` and all dataset routes except `/map/*`. Trip-planner routes stay public. |
+| 2026-10-24 | `/routes/{from}/{to}` answers `200` for every pair of known places (`listed: false` with the real trips when the pair has fewer than 20 trips; `404` only for an unknown place). Adds `listed`, `boats_count` and `via` (one-stop connections). |
+| 2026-10-24 | `/apps`: taxi apps and RTL Travel with store links, hotlines and icons (public). Icons hosted at `/static/apps/`. |
+| 2026-10-24 | Prediction: `/predict/routes/{from}/{to}` and `/predict/places/{id}` (any date; probability per departure, weekday pattern, live sea forecast; checked on held-out days). Demo contacts: `/places/{id}/contacts`. All public. |
+| 2026-10-24 | `/harbour/boats/{code}/timeline` (policy): distance from Male every 30 minutes, stops, trips and projected next trip per North Harbour boat. |

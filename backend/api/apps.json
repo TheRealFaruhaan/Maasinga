@@ -1,0 +1,80 @@
+{
+  "_source": "Team list (Farhan), October 2026. Store links and icons from the official App Store and Google Play listings. Icons in api/static/apps (256x256). places: null = every island.",
+  "apps": [
+    {
+      "id": "male-taxi",
+      "category": "taxi",
+      "name": "Malé Taxi",
+      "name_dv": "މާލެ ޓެކްސީ",
+      "blurb": { "en": "Government taxi line · book or schedule", "dv": "ސަރުކާރުގެ ޓެކްސީ ލައިން" },
+      "color": "#C2413B",
+      "initials": "MT",
+      "icon": "male-taxi.jpg",
+      "iosUrl": "https://apps.apple.com/app/id6761259497",
+      "androidPackage": "mv.mtcc.TaxiApp",
+      "webUrl": null,
+      "hotline": "1655",
+      "places": ["MLE.Male", "MLE.Hulhumale", "MLE.Vilimale", "MLE.Hulhule"]
+    },
+    {
+      "id": "avas",
+      "category": "taxi",
+      "name": "Avas App",
+      "name_dv": "އަވަސް އެޕް",
+      "blurb": { "en": "Cars, vans, bikes · Malé & Hulhumalé", "dv": "ކާރު، ވޭން، ސައިކަލު" },
+      "color": "#F2A900",
+      "initials": "A",
+      "icon": "avas.jpg",
+      "iosUrl": "https://apps.apple.com/app/id6478046635",
+      "androidPackage": "app.avas.rider",
+      "webUrl": "https://avasapp.com/",
+      "hotline": null,
+      "places": ["MLE.Male", "MLE.Hulhumale", "MLE.Vilimale", "MLE.Hulhule"]
+    },
+    {
+      "id": "nala",
+      "category": "taxi",
+      "name": "Nala Taxi",
+      "name_dv": "ނާލާ ޓެކްސީ",
+      "blurb": { "en": "Malé, Hulhumalé, airport", "dv": "މާލެ، ހުޅުމާލެ، އެއާޕޯޓު" },
+      "color": "#2E8BD8",
+      "initials": "N",
+      "icon": "nala.jpg",
+      "iosUrl": "https://apps.apple.com/app/id6740810498",
+      "androidPackage": "nala.taxi.passenger",
+      "webUrl": "https://www.nalataxi.com/",
+      "hotline": null,
+      "places": ["MLE.Male", "MLE.Hulhumale", "MLE.Vilimale", "MLE.Hulhule"]
+    },
+    {
+      "id": "quick",
+      "category": "taxi",
+      "name": "Quick Mv",
+      "name_dv": "ކުއިކް އެމްވީ",
+      "blurb": { "en": "City rides & airport transfers", "dv": "ސިޓީ ދަތުރު އަދި އެއާޕޯޓު" },
+      "color": "#2BA58F",
+      "initials": "Q",
+      "icon": "quick.jpg",
+      "iosUrl": "https://apps.apple.com/app/id6673896033",
+      "androidPackage": "quick.mv.maldives.taxi.passenger",
+      "webUrl": null,
+      "hotline": null,
+      "places": ["MLE.Male", "MLE.Hulhumale", "MLE.Vilimale", "MLE.Hulhule"]
+    },
+    {
+      "id": "rtl",
+      "category": "ferry",
+      "name": "RTL Travel",
+      "name_dv": "އާރުޓީއެލް",
+      "blurb": { "en": "MTCC ferry & bus tickets, QR e-tickets", "dv": "އެމްޓީސީސީ ފެރީ އަދި ބަސް ޓިކެޓް" },
+      "color": "#1F3FD6",
+      "initials": "RTL",
+      "icon": "rtl.jpg",
+      "iosUrl": "https://apps.apple.com/app/id1605778705",
+      "androidPackage": "com.scsoft.maldivesrtl",
+      "webUrl": null,
+      "hotline": "1650",
+      "places": null
+    }
+  ]
+}

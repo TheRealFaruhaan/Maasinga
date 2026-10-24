@@ -4,7 +4,7 @@ Each boat is sampled once every 2 minutes (its last fix in that slot). A path br
 stops (under 2 kn) or when there is no fix for 10 minutes. Coordinates are stored as integers
 (degrees x 10,000, about 11 m) to keep the files small.
 
-Output: dashboard/public/data/replay-<date>.json
+Output: data/out/replay-<date>.json
 """
 import json
 

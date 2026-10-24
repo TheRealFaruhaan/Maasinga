@@ -8,7 +8,7 @@ import s from "./charts.module.css";
 // Small SVG charts: one series each, 3 to 5 faint gridlines, no y-axis line, ticks in grey,
 // round steps with the top tick above the data, a hover readout on every chart.
 
-function useWidth<T extends HTMLElement>() {
+export function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [w, setW] = useState(0);
   useEffect(() => {
@@ -27,7 +27,7 @@ function useGradId() {
 
 const PAD = { top: 14, right: 14, bottom: 30, left: 58 };
 
-function Tip({ x, y, children }: { x: number; y: number; children: ReactNode }) {
+export function Tip({ x, y, children }: { x: number; y: number; children: ReactNode }) {
   return (
     <div className={s.tip} style={{ left: x, top: y }}>
       {children}

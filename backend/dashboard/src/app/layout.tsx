@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import AuthGate from "@/components/AuthGate";
 import Sidebar from "@/components/Sidebar";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Maasinga: sea travel data for the Maldives",
+  title: "Maasinga: mobility data for the Maldives",
   description:
     "Maasinga turns the GPS of 1,776 boats into sea-state readings, safe-trip ratings, signal dead zones and a Travel Index for every inhabited island in the Maldives.",
 };
@@ -25,8 +26,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body>
-        <Sidebar />
-        <div className="shell-main">{children}</div>
+        <AuthGate>
+          <Sidebar />
+          <div className="shell-main">{children}</div>
+        </AuthGate>
       </body>
     </html>
   );

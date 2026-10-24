@@ -5,7 +5,7 @@ The Sea Pace Index for a region and hour = average of (speed / that boat's norma
 speedboats moving there. 1.00 = boats run at their normal speed; 0.90 = 10% slower.
 We compare it with Open-Meteo wave height for the same region and hour.
 
-Output: dashboard/public/data/sea.json
+Output: data/out/sea.json
 """
 import json
 from importlib import import_module

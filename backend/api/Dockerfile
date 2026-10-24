@@ -5,8 +5,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY schema.sql seed.py ./
+COPY schema.sql auth.sql seed.py users.py apps.json ./
+COPY static ./static
 COPY app ./app
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Trust the proxy (Traefik) headers, so links the API builds (icons) use the public https address.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--forwarded-allow-ips", "*"]

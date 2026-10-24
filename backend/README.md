@@ -1,6 +1,6 @@
 # Maasinga
 
-Sea travel data for the Maldives, built from the GPS of 1,776 boats.
+Mobility data for the Maldives, built from the GPS of 1,776 boats.
 
 ## The problem
 
@@ -27,9 +27,10 @@ Every speedboat has its own normal cruising speed (its median speed when moving 
 
 ## Folders
 
-- `pipeline/`: Python and DuckDB scripts that turn the raw data into the 16 data files the app and the API use.
-- `api/`: FastAPI and PostgreSQL. `seed.py` loads the data files into the database (tables in `schema.sql`); the API serves them (docs at `/docs`).
-- `dashboard/`: the Maasinga dashboard (Next.js). Reads the API, and falls back to its own copy of the data files.
+- `pipeline/`: Python and DuckDB scripts that turn the raw data into the 19 data files the app and the API use.
+- `data/out/`: the 19 processed data files (committed).
+- `api/`: FastAPI and PostgreSQL. `seed.py` loads the data files into the database (tables in `schema.sql`); the API serves them (docs at `/docs`). Trip-planning routes are public; boats, trips and the dashboard data need a login (`users.py` manages logins).
+- `dashboard/`: the Maasinga dashboard (Next.js), behind a login. Reads everything from the API.
 - `deploy/`: Docker Compose for the database, API and dashboard.
 - `docs/`: `SETUP.md` (run, deploy, API), `DATA.md` (every data file, field by field) and `API.md` (every endpoint with example responses, for apps that use the API).
 Everything above lives in this `backend/` folder; run the commands below from here. The team's public app
@@ -41,18 +42,18 @@ With Docker (database, API and dashboard in one command):
 
 ```bash
 cd deploy
-cp .env.example .env      # set POSTGRES_PASSWORD
+cp .env.example .env      # set POSTGRES_PASSWORD, JWT_SECRET and ADMIN_PASSWORD
 docker compose up -d --build
-# dashboard: http://localhost:3000   API: http://localhost:8000/docs
+# dashboard: http://localhost:3000 (sign in as admin)   API: http://localhost:8000/docs
 ```
 
 Full step-by-step guide (Docker, without Docker, deploying on a server, rebuilding the data, every setting,
 troubleshooting): [docs/SETUP.md](docs/SETUP.md). Each part has a commented `.env.example`:
 `deploy/.env.example` (Docker), `api/.env.example` and `dashboard/.env.example` (without Docker).
 
-The 16 processed data files in `dashboard/public/data` are committed, so nothing needs the raw organiser data (1.8 GB, not committed) unless you change the analysis.
+The 19 processed data files in `data/out` are committed, so nothing needs the raw organiser data (1.8 GB, not committed) unless you change the analysis.
 
-The app works offline except the live wave forecast on the Travel page (Open-Meteo); without internet it says so and still shows the August data.
+The app needs no internet except for the live wave forecast (Open-Meteo); without internet it says so and still shows the August data.
 
 ## Pipeline
 
@@ -69,7 +70,9 @@ The app works offline except the live wave forecast on the Travel page (Open-Met
 | Taxi requests with no driver | `pipeline/09_taxi.py` | `taxi.json` |
 | Boats in the North Harbour area (team-drawn outline) | `pipeline/analysis/north_harbour.py` | `harbour.json` |
 | Boat display names for the demo (team name list, best guesses) | `pipeline/10_boat_names.py` | `boat-names.json` |
-| App data for the API: every trip, boats, weather, island links to the web app | `pipeline/11_app_data.py` | `trips.json`, `boats.json`, `weather.json`, `places-extra.json` |
+| App data for the API: every trip, boats, weather, island links to the web app, demo contacts | `pipeline/11_app_data.py` | `trips.json`, `boats.json`, `weather.json`, `places-extra.json`, `contacts.json` |
+| Check of the departure prediction on held-out days | `pipeline/12_predict.py` | `predict-eval.json` |
+| Timeline per North Harbour boat: distance from Male, trips, next trip | `pipeline/13_harbour_timeline.py` | `harbour-timelines.json` |
 | Offline basemap from OpenStreetMap | `pipeline/basemap/build_basemap.py` | `land.json`, `reefs.json`, `resorts.json` |
 
 Each script starts with a short note on its method and thresholds.

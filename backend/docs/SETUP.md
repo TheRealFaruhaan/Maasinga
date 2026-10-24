@@ -22,23 +22,23 @@ Live copy: dashboard https://maasinga.devoup.com, API https://maasinga-api.devou
 ```
 FollowMe boat GPS (organiser) + team weather export (ERA5, NASA IMERG) + Census 2022 + OpenStreetMap
         |
-   pipeline/    Python + DuckDB. Turns 1.8 GB of raw GPS into 11 small data files.
-        |        The 16 files are committed in dashboard/public/data, so you do NOT need this step to run the app.
+   pipeline/    Python + DuckDB. Turns 1.8 GB of raw GPS into 19 small data files.
+        |        The 19 files are committed in data/out, so you do NOT need this step to run the app.
         v
-   api/         seed.py loads the 16 files into PostgreSQL (tables: api/schema.sql).
+   api/         seed.py loads the 19 files into PostgreSQL (tables: api/schema.sql).
         |        FastAPI serves them. Interactive docs at /docs.
         v
-   dashboard/   Next.js dashboard. Reads the API; if the API is down it reads its own copy of the files.
+   dashboard/   Next.js dashboard behind a login. Reads everything from the API.
 ```
 
 | Folder | What it is |
 |---|---|
-| `pipeline/` | Data processing scripts (step 01 to 09) and public reference data (`pipeline/reference/`) |
+| `pipeline/` | Data processing scripts (step 01 to 13) and public reference data (`pipeline/reference/`) |
 | `api/` | FastAPI app, database schema, seed script, Dockerfile, `.env.example` |
-| `dashboard/` | Next.js dashboard, its Dockerfile and `.env.example`; data files in `public/data/` |
+| `dashboard/` | Next.js dashboard, its Dockerfile and `.env.example` |
 | `deploy/` | Docker Compose files, `.env.example`, Traefik route example |
-| `docs/` | This guide and `DATA.md` (every data file, field by field) |
-| `data/` | Raw organiser data and working files (not in git; only needed for step 5) |
+| `docs/` | This guide, `DATA.md` (every data file, field by field) and `API.md` (every endpoint, logins) |
+| `data/` | `data/out`: the 19 processed data files (in git). `data/raw`, `data/work`: organiser data and working files (not in git; only for section 5) |
 
 ## 2. Quick start with Docker (recommended)
 
@@ -55,8 +55,12 @@ cd deploy
 cp .env.example .env
 ```
 
-Open `deploy/.env` and set `POSTGRES_PASSWORD` to any password (for example the output of
-`openssl rand -hex 24`). Leave the other values as they are for a local run.
+Open `deploy/.env` and set:
+- `POSTGRES_PASSWORD`: any password (for example the output of `openssl rand -hex 24`).
+- `JWT_SECRET`: a long random value that signs login tokens (`openssl rand -hex 32`).
+- `ADMIN_PASSWORD`: the password for the first login, user `admin` (8 or more characters).
+
+Leave the other values as they are for a local run.
 
 ```bash
 docker compose up -d --build
@@ -67,7 +71,7 @@ The first build takes 3 to 6 minutes. It starts four services:
 | Service | What it does | Address |
 |---|---|---|
 | `db` | PostgreSQL 16; data kept in the Docker volume `pgdata` | inside Docker only |
-| `seed` | Loads the 16 data files into the database, then stops | - |
+| `seed` | Loads the 19 data files into the database, then stops | - |
 | `api` | Maasinga API | http://localhost:8000 (docs: http://localhost:8000/docs) |
 | `dashboard` | Maasinga dashboard | http://localhost:3000 |
 
@@ -78,7 +82,18 @@ docker compose ps                         # db, api and dashboard "running"; see
 curl http://localhost:8000/health         # {"ok":true,"routes":654}
 ```
 
-Then open http://localhost:3000.
+Then open http://localhost:3000 and sign in as `admin` with your `ADMIN_PASSWORD`.
+
+More logins (role `policy` sees the dashboard and protected API routes; `admin` can also manage users):
+
+```bash
+docker compose exec api python users.py add alice                 # asks for the password; role policy
+docker compose exec api python users.py add bob --role admin
+docker compose exec api python users.py list
+docker compose exec api python users.py remove alice
+```
+
+Users are kept in the `auth` schema and survive every seed. Admins can also manage users through the API (`/auth/users`, see `docs/API.md`).
 
 Everyday commands (from `deploy/`):
 
@@ -111,10 +126,11 @@ createdb maasinga --owner maasinga
 
 ```bash
 cd api
-cp .env.example .env                      # set DATABASE_URL with the password from 3.1
+cp .env.example .env                      # set DATABASE_URL (password from 3.1), JWT_SECRET and ADMIN_PASSWORD
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt           # Windows: .venv\Scripts\pip install -r requirements.txt
-.venv/bin/python seed.py                            # loads ../dashboard/public/data (about 2 seconds)
+.venv/bin/python seed.py                            # loads ../data/out (about 2 seconds) and creates the admin login
+.venv/bin/python users.py add alice                 # optional: more logins
 .venv/bin/uvicorn app.main:app --port 8000          # http://localhost:8000/docs
 ```
 
@@ -131,8 +147,7 @@ pnpm dev                                  # http://localhost:3000
 
 For production, use Docker (section 2 or 4): it builds the dashboard as a standalone server.
 
-The dashboard also runs with no API at all: leave `NEXT_PUBLIC_API_URL` empty and it reads
-`public/data`. The live wave forecast on Plan a trip needs internet (Open-Meteo).
+The dashboard needs the API and a login. The live wave forecast on Plan a trip needs internet (Open-Meteo).
 
 ## 4. Deploy on a server
 
@@ -185,7 +200,7 @@ Traefik loads the route file on its own. Then point the two host names to the se
 ### 4.3 Update a running server
 
 Copy the new code to the server, then from `deploy/` run the same `docker compose ... up -d --build` command.
-The seed runs again on every `up`, so the database always matches `dashboard/public/data`.
+The seed runs again on every `up`, so the database always matches `data/out`.
 
 ## 5. Rebuild the data from the raw files (optional)
 
@@ -207,7 +222,7 @@ python3 -m venv .venv
 .venv/bin/python pipeline/run_all.py                # about 20 seconds
 ```
 
-This writes the 16 files to `dashboard/public/data` and the per-boat harbour table (with real tracker IDs,
+This writes the 19 files to `data/out` and the per-boat harbour table (with real tracker IDs,
 not shared) to `data/work/`. Then reload the database: `docker compose run --rm seed && docker compose restart api`
 (Docker) or `api/.venv/bin/python api/seed.py` and restart the API (no Docker).
 
@@ -220,13 +235,17 @@ Step 02 rebuilds them from the team weather export in `weather/export` (repo roo
 | File | Used when | Setting | Meaning |
 |---|---|---|---|
 | `deploy/.env` | Docker Compose | `POSTGRES_PASSWORD` | Database password (required) |
+| | | `JWT_SECRET` | Signs login tokens; 32+ random characters (required) |
+| | | `ADMIN_USERNAME`, `ADMIN_PASSWORD` | First admin login, made once at seed time |
 | | | `PUBLIC_API_URL` | API address as the browser sees it; built into the dashboard |
 | | | `CORS_ORIGINS` | Websites allowed to call the API (`*` or a comma list) |
 | | | `API_PORT`, `DASHBOARD_PORT` | Host ports (default 8000 and 3000) |
 | `api/.env` | API without Docker | `DATABASE_URL` | `postgresql://USER:PASSWORD@HOST:PORT/DATABASE` |
 | | | `CORS_ORIGINS` | As above |
-| | | `DATA_DIR` | Folder seed.py loads (default `../dashboard/public/data`) |
-| `dashboard/.env.local` | Dashboard without Docker | `NEXT_PUBLIC_API_URL` | API address; empty = read `public/data` |
+| | | `DATA_DIR` | Folder seed.py loads (default `../data/out`) |
+| | | `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` | As above |
+| | | `TOKEN_HOURS` | How long a login lasts (default 12) |
+| `dashboard/.env.local` | Dashboard without Docker | `NEXT_PUBLIC_API_URL` | API address (required) |
 | (shell) | Pipeline | `MAASINGA_RAW` | Raw data folder (default `data/raw`) |
 
 Each folder has a commented `.env.example`. Real `.env` files are ignored by git.
@@ -235,21 +254,8 @@ Each folder has a commented `.env.example`. Real `.env` files are ignored by git
 
 Interactive, with every field: `/docs` on the running API (OpenAPI JSON at `/openapi.json`).
 
-| Endpoint | Returns |
-|---|---|
-| `GET /health` | API and database status |
-| `GET /network` | Places, routes (usual departures, departures by hour), Travel Index, trips per day |
-| `GET /paths` | Typical GPS track of each route |
-| `GET /route-boats` | Boats on each route (coded IDs) |
-| `GET /sea` | Boat speed against waves, per region, day and map cell |
-| `GET /safety` | Crossings in rough sea, speedboats at full speed |
-| `GET /signal` | Sea cells and dead zones with no phone signal |
-| `GET /harbour` | Male North Harbour: boats, stays, arrivals |
-| `GET /replay/calm`, `GET /replay/rough` | Every moving boat on one calm and one rough day |
-| `GET /map/land`, `GET /map/reefs` | OpenStreetMap base map as GeoJSON |
-| `GET /places?kind=island` | Islands and sites |
-| `GET /routes?from=MLE.Male` | Routes from one place, busiest first |
-| `GET /routes/{from}/{to}` | One route: departures, hours, boats, track (for example `/routes/MLE.Male/K.Maafushi`) |
+Every endpoint, with example responses, logins and TypeScript types: [API.md](API.md).
+Public routes (trip planning) need no login; boats, trips and the dashboard datasets need a `policy` login.
 
 Tables: `api/schema.sql` (every column is commented). Data fields: `docs/DATA.md`.
 
@@ -257,9 +263,11 @@ Tables: `api/schema.sql` (every column is commented). Data fields: `docs/DATA.md
 
 | Problem | Fix |
 |---|---|
-| `POSTGRES_PASSWORD` error on `docker compose up` | You have no `deploy/.env`. Run `cp .env.example .env` and set the password. |
+| `POSTGRES_PASSWORD` or `JWT_SECRET` error on `docker compose up` | You have no `deploy/.env`, or a value is missing. Run `cp .env.example .env` and set them. |
+| API stops with "Set JWT_SECRET" | `JWT_SECRET` is missing, shorter than 32 characters, or still the example value. |
+| Dashboard says "Wrong username or password" | Create the user: `docker compose exec api python users.py add <name>`. `ADMIN_PASSWORD` is used only when the admin does not exist yet. |
 | Port 3000 or 8000 already in use | Change `DASHBOARD_PORT` / `API_PORT` in `deploy/.env` (and `PUBLIC_API_URL` to match), then `docker compose up -d --build`. |
-| Dashboard shows data but the API is not called | `PUBLIC_API_URL` was empty or wrong when the dashboard was built. Fix it and run `docker compose up -d --build dashboard`. |
+| Sign-in says "The API address is not set" or nothing loads | `PUBLIC_API_URL` was empty or wrong when the dashboard was built. Fix it and run `docker compose up -d --build dashboard`. |
 | Browser console shows a CORS error | Add the dashboard address to `CORS_ORIGINS` and run `docker compose up -d api`. |
 | `seed` exited with an error | `docker compose logs seed`. Usually the database password changed after the volume was created: run `docker compose down -v` and `up` again. |
 | A map shows "The map could not start in this browser" | The browser has no WebGL (or ran out of WebGL contexts). Reload the page or try another browser. |
