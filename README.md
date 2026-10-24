@@ -12,6 +12,14 @@ This repo has two parts:
 
 The final database is committed as a dump: [`backend/data/db/maasinga_db_2026-10-24.sql.gz`](backend/data/db/maasinga_db_2026-10-24.sql.gz).
 
+## Live demo
+
+| What | Address |
+|---|---|
+| Public trip planner (open it on a phone) | https://maasinga-web.dev.faruhaan.com |
+| Policy dashboard (log in with the default login below) | https://maasinga-web.dev.faruhaan.com/policy |
+| API and its interactive docs | https://maasinga-api.devoup.com/docs |
+
 ## How it fits together
 
 ```
@@ -26,7 +34,7 @@ PostgreSQL  ──  Maasinga API (FastAPI, :8000)  ──┬──  web/  public
 
 | Username | Password | Role |
 |---|---|---|
-| `admin` | `YOUR_ADMIN_PASSWORD` | `admin` (sees the policy dashboard and can manage users) |
+| `admin` | `YOUR_ADMIN_PASSWORD` | `admin` (sees the policy dashboard at `/policy` and can manage users) |
 
 The dump has **no users in it** (`auth.users` is empty), so step 2 below creates this login. Change the
 password on any server other people can reach (`python users.py add admin --role admin` sets a new one).
