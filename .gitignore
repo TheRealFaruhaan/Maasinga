@@ -3,3 +3,8 @@
 .mcp.json
 crundi_attachments/
 .claude/settings.local.json
+collector/data/
+weather/data/
+weather/.venv/
+weather/.tools/
+__pycache__/
