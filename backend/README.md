@@ -42,7 +42,8 @@ Every speedboat has its own normal cruising speed (its median speed when moving 
 - `deploy/`: Docker Compose for the database, API and dashboard.
 - `docs/`: `SETUP.md` (run, deploy, API), `DATA.md` (every data file, field by field) and `API.md` (every endpoint with example responses, for apps that use the API).
 Everything above lives in this `backend/` folder; run the commands below from here. The team's public app
-and data collectors (`web/`, `collector/`, `weather/`) are separate folders at the repo root.
+is `web/` at the repo root. The data collectors (`collector/`, `weather/`) are not in this repo; the
+committed weather files in `pipeline/reference/weather/` are used when `weather/export` isn't there.
 
 ## How to run
 
