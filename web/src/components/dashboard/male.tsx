@@ -2,22 +2,28 @@
 
 import { ArrowRight, Bus, Clock } from "lucide-react";
 import { useLang } from "@/lib/i18n";
-import { RTL_APP, TAXI_APPS } from "@/lib/apps";
-import { AIRPORT_TAXI, BUS_ROUTES } from "@/lib/male";
-import { AppGrid, AppTile, DashSection, EmergencyNumbers, NumberGrid } from "./parts";
+import { useApi, type AirportFare, type BusRoute } from "@/lib/api";
+import { DashSection, EmergencyNumbers, PlaceApps } from "./parts";
+import { SeaForecast } from "./sea";
+import type { Island } from "@/lib/islands";
 
 /** Custom dashboard for Malé City (Malé, Hulhumalé, Villimalé). */
-export function MaleDashboard() {
+export function MaleDashboard({ island }: { island: Island }) {
   const { t, lang } = useLang();
+  const fares = useApi<AirportFare[]>("/airport-taxi-fares");
+  const bus = useApi<BusRoute[]>("/bus-routes");
   return (
     <div>
+      <SeaForecast island={island} />
+
       <DashSection title={t.taxi}>
-        <AppGrid apps={TAXI_APPS} />
+        <PlaceApps place={island.id} category="taxi" layout="grid" />
       </DashSection>
 
       <DashSection title={t.busRoutes}>
         <div className="overflow-hidden rounded-[22px] bg-white text-brand-ink">
-          {BUS_ROUTES.map((r) => (
+          {bus.status === "loading" && <div className="h-40 animate-pulse bg-brand-ink/[0.04]" />}
+          {(bus.status === "ok" ? bus.data : []).map((r) => (
             <div key={r.code} className="flex items-center gap-3 border-b border-brand-ink/[0.06] px-3.5 py-3 last:border-0">
               <span
                 className="grid h-9 min-w-12 place-items-center rounded-[10px] px-2 font-display text-[15px] font-extrabold text-white"
@@ -32,13 +38,13 @@ export function MaleDashboard() {
                   <ArrowRight className="size-3.5 shrink-0 text-brand-ink/35 rtl:rotate-180" />
                   <span className="truncate">{r.to[lang]}</span>
                 </span>
-                {(r.fare || r.every) && (
+                {(r.fare || r.every_min) && (
                   <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[12px] text-brand-ink/55">
                     {r.fare && <span dir="ltr">{r.fare}</span>}
-                    {r.every && (
+                    {r.every_min && (
                       <span className="inline-flex items-center gap-1">
                         <Clock className="size-3" />
-                        {t.every(r.every)}
+                        {t.every(r.every_min)}
                       </span>
                     )}
                     {r.hours && <span dir="ltr">{r.hours}</span>}
@@ -53,7 +59,7 @@ export function MaleDashboard() {
           </div>
         </div>
         <div className="mt-2">
-          <AppTile app={RTL_APP} />
+          <PlaceApps place={island.id} category="ferry" layout="rows" />
         </div>
       </DashSection>
 
@@ -64,7 +70,8 @@ export function MaleDashboard() {
             <span>{t.car}</span>
             <span>{t.van}</span>
           </div>
-          {AIRPORT_TAXI.map((f) => (
+          {fares.status === "loading" && <div className="h-28 animate-pulse bg-brand-ink/[0.04]" />}
+          {(fares.status === "ok" ? fares.data : []).map((f) => (
             <div key={f.to.en} className="grid grid-cols-[1fr_auto_auto] gap-x-4 border-b border-brand-ink/[0.06] px-3.5 py-2.5 text-[14px] last:border-0">
               <span className="font-semibold">{f.to[lang]}</span>
               <span className="font-display font-bold text-brand" dir="ltr">{f.car}</span>
@@ -72,15 +79,6 @@ export function MaleDashboard() {
             </div>
           ))}
         </div>
-      </DashSection>
-
-      <DashSection title={t.hotlines}>
-        <NumberGrid
-          items={[
-            { id: "taxi", number: "1655", label: t.taxiLine },
-            { id: "mtcc", number: "1650", label: t.mtcc },
-          ]}
-        />
       </DashSection>
 
       <EmergencyNumbers />

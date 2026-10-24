@@ -12,7 +12,7 @@ import { MaleDashboard } from "./male";
  * every other island gets the general one.
  */
 export function IslandDashboard({ island }: { island: Island }) {
-  if (isMaleCity(island)) return <MaleDashboard />;
+  if (isMaleCity(island)) return <MaleDashboard island={island} />;
   return <GeneralDashboard island={island} />;
 }
 

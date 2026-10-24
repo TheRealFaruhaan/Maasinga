@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Poppins, Lexend } from "next/font/google";
 import localFont from "next/font/local";
 import { LangProvider } from "@/lib/i18n";
+import { IslandsProvider } from "@/lib/islands";
 import "./globals.css";
 
 const sans = Poppins({ variable: "--font-poppins", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
@@ -48,7 +49,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${sans.variable} ${display.variable} ${waheed.variable} ${notoThaana.variable} antialiased`}>
       <body>
-        <LangProvider>{children}</LangProvider>
+        <LangProvider>
+          <IslandsProvider>{children}</IslandsProvider>
+        </LangProvider>
       </body>
     </html>
   );

@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, LocateFixed, Search } from "lucide-react";
-import { ATOLLS, ISLANDS, type Island } from "@/lib/islands";
+import { useIslands, type Island } from "@/lib/islands";
 import { useLang } from "@/lib/i18n";
 
 export interface IslandListProps {
-  selectedId: number | null;
+  selectedId: string | null;
   /** The island picked on the other side; shown disabled so From ≠ To. */
-  otherId: number | null;
+  otherId: string | null;
   onSelect: (island: Island) => void;
   /** Shows a "use my current location" row first. */
   onUseLocation?: () => void;
@@ -16,17 +16,17 @@ export interface IslandListProps {
   className?: string;
 }
 
-const byAtoll = ATOLLS.map((atoll) => ({
-  atoll,
-  islands: ISLANDS.filter((i) => i.atoll === atoll.code),
-}));
-
 /**
  * Search + atoll accordion. Mount it fresh each time its container opens
  * (key it) so the search clears and the selected atoll starts expanded.
  */
 export function IslandList({ selectedId, otherId, onSelect, onUseLocation, className }: IslandListProps) {
   const { t, lang } = useLang();
+  const { islands: ISLANDS, atolls: ATOLLS } = useIslands();
+  const byAtoll = useMemo(
+    () => ATOLLS.map((atoll) => ({ atoll, islands: ISLANDS.filter((i) => i.atoll === atoll.code) })),
+    [ATOLLS, ISLANDS],
+  );
   const [q, setQ] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(() => {
     const sel = ISLANDS.find((i) => i.id === selectedId);
@@ -63,7 +63,7 @@ export function IslandList({ selectedId, otherId, onSelect, onUseLocation, class
         };
       })
       .filter((g) => g.islands.length > 0);
-  }, [query, raw]);
+  }, [query, raw, byAtoll]);
 
   const toggle = (code: string) =>
     setExpanded((prev) => {
@@ -139,14 +139,6 @@ export function IslandList({ selectedId, otherId, onSelect, onUseLocation, class
                             selected ? "bg-brand text-white" : "hover:bg-brand-ink/[0.04]"
                           } ${disabled ? "opacity-35" : ""}`}
                         >
-                          <span
-                            className={`w-10 shrink-0 font-display text-sm font-bold tabular-nums ${
-                              selected ? "text-white/80" : "text-brand"
-                            }`}
-                            dir="ltr"
-                          >
-                            {i.code}
-                          </span>
                           <span className="flex-1 truncate font-medium">
                             {lang === "dv" ? i.name_dv : i.name_en}
                           </span>

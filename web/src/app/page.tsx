@@ -1,24 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { IslandSheet } from "@/components/island-sheet";
 import { DestinationSelector } from "@/components/route-selector";
 import { HERO_H, LocationPill, type FromSource } from "@/components/location-pill";
 import { isMaleCity } from "@/lib/male";
-import { QuickContact, SectionTitle, TripCard } from "@/components/cards";
+import { QuickContact, SectionTitle } from "@/components/cards";
+import { RouteSchedule } from "@/components/route-schedule";
 import { IntentPicker, type Intent } from "@/components/intent";
 import { IslandDashboard } from "@/components/dashboard";
+import { Footer } from "@/components/footer";
 import { useLang } from "@/lib/i18n";
-import { DEFAULT_ISLAND_ID, getIsland, nearestIsland, type Island } from "@/lib/islands";
-import { tripsFor, type FerryKind } from "@/lib/mock";
+import { DEFAULT_ISLAND_ID, getIsland, nearestIsland, useIslands, type Island } from "@/lib/islands";
+import type { FerryKind } from "@/lib/kinds";
 import { loadPrefs, savePrefs } from "@/lib/prefs";
 
 
 export default function Home() {
   const { t, lang, setLang } = useLang();
-  const [fromId, setFromId] = useState<number | null>(null);
+  const islands = useIslands();
+  const [fromId, setFromId] = useState<string | null>(null);
   const [fromSource, setFromSource] = useState<FromSource>("detecting");
-  const [toId, setToId] = useState<number | null>(null);
+  const [toId, setToId] = useState<string | null>(null);
   const [toOpen, setToOpen] = useState(false);
   const [kind, setKind] = useState<FerryKind>("boat");
   const [intent, setIntent] = useState<Intent | null>(null);
@@ -56,6 +59,7 @@ export default function Home() {
   // Restore what they chose last time (after hydration: localStorage isn't
   // there during SSR). A hand-picked island wins over GPS.
   useEffect(() => {
+    if (islands.status !== "ready") return;
     const p = loadPrefs();
     /* eslint-disable react-hooks/set-state-in-effect */
     if (getIsland(p.toId)) setToId(p.toId!);
@@ -66,7 +70,7 @@ export default function Home() {
       setFromSource("manual");
     } else detect();
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [detect]);
+  }, [detect, islands.status]);
 
   const pickFrom = (island: Island) => {
     setFromId(island.id);
@@ -100,8 +104,6 @@ export default function Home() {
   };
 
   // Cargo goes by boat (dhoni); travellers can pick launch or boat.
-  const tripKind: FerryKind = intent === "cargo" ? "boat" : kind;
-  const trips = useMemo(() => (from && to ? tripsFor(from, to, tripKind) : []), [from, to, tripKind]);
 
   return (
     <main className="mx-auto min-h-dvh w-full max-w-md px-4 pb-16 pt-[env(safe-area-inset-top)]">
@@ -131,6 +133,15 @@ export default function Home() {
       {/* Room for the island card; the card itself is the top bar's pill,
           expanded while the page is scrolled to the top. */}
       <div aria-hidden style={{ height: HERO_H }} />
+
+      {islands.status === "error" && (
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-[20px] bg-red-500/20 px-4 py-3 text-[14px] text-white ring-1 ring-red-300/30">
+          <span>{t.loadFailed}</span>
+          <button onClick={islands.retry} className="shrink-0 rounded-full bg-white px-3 py-1.5 text-[13px] font-semibold text-brand">
+            {t.retry}
+          </button>
+        </div>
+      )}
 
       <IntentPicker
         from={from}
@@ -171,14 +182,9 @@ export default function Home() {
               >
                 {i === "cargo" ? t.pickToCargo : t.pickTo}
               </button>
-            ) : trips.length === 0 ? (
-              <p className="rounded-[22px] bg-white/10 px-5 py-6 text-center text-white/70">{t.noTrips}</p>
             ) : (
-              <div className="space-y-3">
-                {trips.map((trip) => (
-                  <TripCard key={trip.id} trip={trip} from={from!} to={to} />
-                ))}
-              </div>
+              // Cargo goes by dhoni / slow boat; travellers choose.
+              from && <RouteSchedule from={from} to={to} kind={i === "cargo" ? "boat" : kind} />
             )}
 
           </>
@@ -186,7 +192,8 @@ export default function Home() {
       />
 
       {/* Always on the page, not tucked inside a card. */}
-      {from && (
+      {/* Malé City has its own dashboard; emergency numbers are enough there. */}
+      {from && !isMaleCity(from) && (
         <>
           <SectionTitle>{t.quickContact}</SectionTitle>
           <QuickContact from={from} to={to} fallback={intent === "travel" ? "ferry" : "cargo"} />
@@ -198,6 +205,8 @@ export default function Home() {
           <IslandDashboard island={from} />
         </div>
       )}
+
+      <Footer />
 
       <IslandSheet
         open={toOpen}

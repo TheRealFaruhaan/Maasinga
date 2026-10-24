@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronRight, MapPin, Phone, Sailboat, Ship, Store, Truck } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ChevronRight, Phone, Sailboat, Ship, Store, Truck } from "lucide-react";
+import { useEffect, useState } from "react";
 import { loadPrefs, savePrefs } from "@/lib/prefs";
-import { relativeDays, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 import type { Island } from "@/lib/islands";
-import { contactsFor, type BoatInArea, type ContactKind, type Trip } from "@/lib/mock";
+import { useApi, type Confidence, type PlaceContacts } from "@/lib/api";
+import type { Contact, ContactKind } from "@/lib/kinds";
 
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -20,17 +21,30 @@ function IslandStop({ island }: { island: Island }) {
   const { lang } = useLang();
   return (
     <div className="min-w-0">
-      <div className="font-display text-[26px] font-extrabold leading-none text-brand" dir="ltr">
-        {island.code}
-      </div>
-      <div className="mt-0.5 truncate text-[9px] font-semibold uppercase text-brand-ink/40" title={island.name_en}>
+      <div className="truncate font-display text-[15px] font-extrabold leading-tight text-brand" title={island.name_en}>
         {lang === "dv" ? island.name_dv : island.name_en}
+      </div>
+      <div className="mt-0.5 truncate text-[9px] font-semibold uppercase text-brand-ink/40" dir="ltr">
+        {island.code}
       </div>
     </div>
   );
 }
 
-function BoatName({ name_dv, name_en, size = "md" }: { name_dv: string; name_en: string; size?: "md" | "lg" }) {
+export function BoatName({ name_dv, name_en, size = "md" }: { name_dv?: string; name_en: string; size?: "md" | "lg" }) {
+  // Real boats have no Dhivehi name in the data yet: show the English one big.
+  if (!name_dv) {
+    // Long names step down a size and wrap inside the block, never past it.
+    const long = name_en.length > 12;
+    const fs = size === "lg" ? (long ? "text-[13px]" : "text-[15px]") : long ? "text-[11px]" : "text-[13px]";
+    return (
+      <div className="flex w-full min-w-0 flex-col items-center justify-center text-center text-white">
+        <span className={`line-clamp-3 w-full font-display font-extrabold uppercase leading-tight [overflow-wrap:anywhere] ${fs}`}>
+          {name_en}
+        </span>
+      </div>
+    );
+  }
   return (
     <div className="flex min-w-0 max-w-full flex-col items-center justify-center text-center text-white">
       <span className={`font-thaana leading-tight ${size === "lg" ? "text-[20px]" : "text-[17px]"}`} dir="rtl">
@@ -41,15 +55,34 @@ function BoatName({ name_dv, name_en, size = "md" }: { name_dv: string; name_en:
   );
 }
 
-export function TripCard({ trip, from, to }: { trip: Trip; from: Island; to: Island }) {
+export interface TripCardProps {
+  date: Date;
+  time: string;
+  arrives: string;
+  from: Island;
+  to: Island;
+  boat: { name: string; name_dv?: string; color: string };
+  /** How sure the API's prediction is. */
+  confidence: Confidence;
+  probability: number;
+}
+
+const CONF_DOT: Record<Confidence, string> = {
+  "very likely": "bg-emerald-500",
+  likely: "bg-amber-400",
+  possible: "bg-brand-ink/25",
+};
+
+/** One departure: date, the two islands, the boat, departure and arrival. */
+export function TripCard({ date, time, arrives, from, to, boat, confidence, probability }: TripCardProps) {
   const { t, lang } = useLang();
   return (
     <article className="flex overflow-hidden rounded-[22px] bg-white/15">
       <div className="flex w-[78px] shrink-0 flex-col items-center justify-center py-3 text-white">
-        <span className="font-thaana text-[11px] opacity-80">{t.days[trip.date.getDay()]}</span>
-        <span className="font-display text-[40px] font-extrabold leading-none">{trip.date.getDate()}</span>
+        <span className="font-thaana text-[11px] opacity-80">{t.days[date.getDay()]}</span>
+        <span className="font-display text-[40px] font-extrabold leading-none">{date.getDate()}</span>
         <span className={`font-bold leading-tight ${lang === "dv" ? "font-thaana text-[11px]" : "text-lg"}`}>
-          {t.months[trip.date.getMonth()]}
+          {t.months[date.getMonth()]}
         </span>
       </div>
       <div className="relative min-w-0 flex-1 rounded-[20px] bg-white">
@@ -63,81 +96,32 @@ export function TripCard({ trip, from, to }: { trip: Trip; from: Island; to: Isl
                 strokeWidth={3}
               />
             </div>
-            <div className="mt-1.5 flex h-5 items-center">
-              {trip.updated ? (
-                <span className="-ms-3 rounded-e-md bg-[#C2413B] px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                  {t.updated}
-                </span>
-              ) : (
-                <span className="flex w-full items-center gap-1 pe-2">
-                  <span className="size-1.5 rounded-full bg-brand-ink/20" />
-                  <span className="h-px flex-1 border-t border-dashed border-brand-ink/20" />
-                  <span className="size-1.5 rounded-full bg-brand-ink/20" />
-                </span>
-              )}
+            <div className="mt-1.5 flex h-5 items-center gap-1.5 pe-2 text-[10px] font-semibold text-brand-ink/40">
+              <span className={`size-1.5 shrink-0 rounded-full ${CONF_DOT[confidence]}`} />
+              <span className="truncate">{t.confidence(confidence, Math.round(probability * 100))}</span>
             </div>
           </div>
           <div
-            className="flex w-[34%] shrink-0 items-center justify-center rounded-es-[20px] rounded-se-[20px] px-1.5 py-2"
-            style={{ background: trip.boat.color }}
+            className="flex w-[30%] shrink-0 items-center justify-center overflow-hidden rounded-es-[20px] rounded-se-[20px] px-2 py-2"
+            style={{ background: boat.color }}
           >
-            <BoatName name_dv={trip.boat.name_dv} name_en={trip.boat.name_en} />
+            <BoatName name_dv={boat.name_dv} name_en={boat.name} />
           </div>
         </div>
         <div className="flex gap-5 px-3 pb-2.5 pt-1.5">
           <div>
             <div className="text-[9px] font-semibold text-brand-ink/40">{t.departure}</div>
             <div className="font-display text-lg font-extrabold leading-tight text-brand" dir="ltr">
-              {trip.time}
+              {time}
             </div>
           </div>
-          <div className="min-w-0">
-            <div className="text-[9px] font-semibold text-brand-ink/40">{t.location}</div>
-            <div className="line-clamp-2 font-display text-[15px] font-extrabold uppercase leading-[1.15] text-brand">
-              {trip.location[lang]}
+          <div>
+            <div className="text-[9px] font-semibold text-brand-ink/40">{t.arrival}</div>
+            <div className="font-display text-lg font-extrabold leading-tight text-brand" dir="ltr">
+              {arrives}
             </div>
           </div>
         </div>
-      </div>
-    </article>
-  );
-}
-
-const fmtDate = (d: Date, months: string[]) => `${d.getDate()} ${months[d.getMonth()]}`;
-
-export function BoatAreaCard({ item }: { item: BoatInArea }) {
-  const { t, lang } = useLang();
-  return (
-    <article className="overflow-hidden rounded-[20px] bg-white">
-      <div className="relative flex h-[84px] items-center justify-end px-3" style={{ background: item.boat.color }}>
-        <span className="absolute start-2.5 top-2.5 grid size-8 place-items-center rounded-full bg-brand text-white">
-          <Truck className="size-4" />
-        </span>
-        <BoatName name_dv={item.boat.name_dv} name_en={item.boat.name_en} size="lg" />
-      </div>
-      <div className="grid grid-cols-2 gap-1 border-b-2 border-brand/80 px-2.5 py-2">
-        <div>
-          <div className="text-[9px] font-semibold text-brand-ink/40">{t.arrived}</div>
-          <div className="font-display text-lg font-extrabold leading-tight text-brand">
-            {fmtDate(item.arrived, t.months)}
-          </div>
-          <div className="text-[9px] text-brand-ink/40">{relativeDays(t, item.arrived)}</div>
-        </div>
-        <div>
-          <div className="text-[9px] font-semibold text-brand-ink/40">{t.departureDate}</div>
-          <div className="font-display text-lg font-extrabold leading-tight text-brand">
-            {item.departure ? fmtDate(item.departure, t.months) : "–"}
-          </div>
-          <div className="text-[9px] text-brand-ink/40">
-            {item.departure ? relativeDays(t, item.departure) : "-"}
-          </div>
-        </div>
-      </div>
-      <div className="relative min-h-[52px] px-2.5 py-2">
-        <p className={`whitespace-pre-line text-[13px] font-semibold leading-snug ${lang === "dv" ? "font-thaana" : ""}`}>
-          {t.status[item.status]}
-        </p>
-        <MapPin className="absolute -bottom-1 end-1 size-10 fill-brand/10 text-brand/15" />
       </div>
     </article>
   );
@@ -178,7 +162,9 @@ export function QuickContact({ from, to, fallback = "cargo" }: { from: Island; t
 
   const side = to ? sideState : "here";
   const island = side === "dest" && to ? to : from;
-  const contacts = useMemo(() => contactsFor(island)[kind], [island, kind]);
+  const res = useApi<PlaceContacts>(`/places/${encodeURIComponent(island.id)}/contacts`);
+  const contacts: Contact[] = res.status === "ok" ? (res.data.contacts[kind] ?? []) : [];
+  const demo = res.status === "ok" && res.data.demo;
   const nameOf = (i: Island) => (lang === "dv" ? i.name_dv : i.name_en);
 
   return (
@@ -238,6 +224,16 @@ export function QuickContact({ from, to, fallback = "cargo" }: { from: Island; t
           </button>
         ))}
       </div>
+      {demo && (
+        <div className="flex items-center gap-2 border-t-2 border-brand/60 px-3 py-2 text-[11px] text-amber-100">
+          <span className="rounded-full bg-amber-300 px-2 py-0.5 font-bold uppercase tracking-wide text-amber-950">{t.demoData}</span>
+          {t.demoContacts}
+        </div>
+      )}
+      {res.status === "loading" && <div className="mx-3 my-3 h-16 animate-pulse rounded-xl bg-white/10" />}
+      {res.status === "ok" && contacts.length === 0 && (
+        <p className="border-t-2 border-brand/60 px-3 py-4 text-center text-[13px] text-white/60">{t.noContacts}</p>
+      )}
       <ul key={`${island.id}-${kind}`} className="animate-[maas-in_.25s_ease-out]">
         {contacts.map((c) => (
           <li key={c.name} className="flex items-center border-t-2 border-brand/60 px-3 py-2.5 text-white">

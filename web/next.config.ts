@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Lets the phone preview on the Crundi subdomain use dev-only assets/HMR.
-  allowedDevOrigins: ["maasinga-web.dev.faruhaan.com"],
+  // The dev server is previewed on its own private subdomain (production
+  // runs as a separate service on maasinga-web).
+  allowedDevOrigins: ["maasinga-dev.dev.faruhaan.com"],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

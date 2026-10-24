@@ -14,7 +14,7 @@ interface Props {
   title?: string;
   subtitle?: string;
   source: FromSource;
-  otherId: number | null;
+  otherId: string | null;
   onSelect: (island: Island) => void;
   onUseLocation: () => void;
 }

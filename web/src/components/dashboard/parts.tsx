@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ExternalLink, Globe, MoreHorizontal, Phone } from "lucide-react";
 import { useLang } from "@/lib/i18n";
-import { appHref, appLinks, detectPlatform, EMERGENCY, type AppLink, type Platform } from "@/lib/apps";
+import { appHref, appLinks, detectPlatform, type AppLink, type Platform } from "@/lib/apps";
 import type { Island } from "@/lib/islands";
+import { useApi, type Hotline } from "@/lib/api";
 import { getAtoll } from "@/lib/islands";
 
 /** The device platform; "other" during SSR, the real one after hydration. */
@@ -16,10 +17,49 @@ export function usePlatform(): Platform {
   );
 }
 
-export function DashSection({ title, children }: { title: string; children: React.ReactNode }) {
+/**
+ * Marks content the API doesn't provide yet (hand-written in the app, or not
+ * available at all). Every use is listed in web/API_GAPS.md.
+ */
+export function ApiGap({ children, block }: { children?: React.ReactNode; block?: boolean }) {
+  const { t } = useLang();
+  if (block) {
+    return (
+      <div className="rounded-[22px] border-2 border-dashed border-amber-300/50 bg-amber-300/10 px-5 py-5 text-center">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-300 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-950">
+          {t.notInApi}
+        </span>
+        {children && <p className="mt-2 text-[13px] leading-snug text-white/75">{children}</p>}
+      </div>
+    );
+  }
+  return (
+    <span
+      title={typeof children === "string" ? children : undefined}
+      className="inline-flex shrink-0 items-center rounded-full bg-amber-300 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950 normal-case"
+    >
+      {t.notInApi}
+    </span>
+  );
+}
+
+export function DashSection({
+  title,
+  children,
+  gap,
+}: {
+  title: string;
+  children: React.ReactNode;
+  /** Set when this section's data isn't from the API yet: what's missing. */
+  gap?: string;
+}) {
   return (
     <section className="mt-6">
-      <h3 className="mb-2.5 px-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-white/60">{title}</h3>
+      <div className="mb-2.5 flex items-center justify-between gap-2 px-1">
+        <h3 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-white/60">{title}</h3>
+        {gap && <ApiGap>{gap}</ApiGap>}
+      </div>
+      {gap && <p className="-mt-1 mb-2.5 px-1 text-[11px] leading-snug text-amber-200/80">{gap}</p>}
       {children}
     </section>
   );
@@ -103,11 +143,18 @@ export function NumberGrid({ items }: { items: { id: string; number: string; lab
   );
 }
 
+/** Emergency numbers from the API (/hotlines?category=emergency). */
 export function EmergencyNumbers() {
   const { t, lang } = useLang();
+  const res = useApi<Hotline[]>("/hotlines?category=emergency");
+  if (res.status === "error") return null;
   return (
     <DashSection title={t.emergency}>
-      <NumberGrid items={EMERGENCY.map((e) => ({ id: e.id, number: e.number, label: e[lang] }))} />
+      {res.status === "ok" ? (
+        <NumberGrid items={res.data.map((e) => ({ id: e.id, number: e.number, label: e.name[lang] }))} />
+      ) : (
+        <div className="h-[76px] animate-pulse rounded-[18px] bg-white/10" />
+      )}
     </DashSection>
   );
 }
@@ -234,5 +281,29 @@ function PlayGlyph({ className }: { className?: string }) {
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
       <path d="M4.2 2.6c-.25.26-.4.66-.4 1.18v16.44c0 .52.15.92.4 1.18l.06.06 9.2-9.2v-.22l-9.2-9.2-.06.06Zm12.33 12.4-3.07-3.07v-.22l3.07-3.07.07.04 3.64 2.07c1.04.59 1.04 1.56 0 2.15l-3.64 2.07-.07.04Zm.07-.04L13.46 11.8 4.2 21.06c.34.36.9.4 1.54.05l10.86-6.17m0-6.29L5.74 2.9c-.64-.36-1.2-.32-1.54.05l9.26 9.25 3.14-3.14Z" />
     </svg>
+  );
+}
+
+/** Apps for a place from the API (/apps), as a grid of icons or as rows. */
+export function PlaceApps({ place, category, layout }: { place: string; category: string; layout: "grid" | "rows" }) {
+  const res = useApi<AppLink[]>(`/apps?category=${encodeURIComponent(category)}&place=${encodeURIComponent(place)}`);
+  if (res.status === "error") return null;
+  if (res.status !== "ok") {
+    return layout === "grid" ? (
+      <div className="grid grid-cols-2 gap-3">
+        <div className="h-44 animate-pulse rounded-[22px] bg-white/10" />
+        <div className="h-44 animate-pulse rounded-[22px] bg-white/10" />
+      </div>
+    ) : (
+      <div className="h-[72px] animate-pulse rounded-[20px] bg-white/10" />
+    );
+  }
+  if (layout === "grid") return <AppGrid apps={res.data} />;
+  return (
+    <div className="space-y-2">
+      {res.data.map((a) => (
+        <AppTile key={a.id} app={a} />
+      ))}
+    </div>
   );
 }

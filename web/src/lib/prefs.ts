@@ -1,12 +1,12 @@
 // The person's choices, remembered in this browser (localStorage).
 // One versioned entry, so the shape can change later without stale junk.
-import type { ContactKind, FerryKind } from "./mock";
+import type { ContactKind, FerryKind } from "./kinds";
 
 export interface Prefs {
   lang?: "en" | "dv";
-  /** Island they picked by hand; GPS doesn't override it. */
-  fromId?: number;
-  toId?: number;
+  /** Island they picked by hand (API place id); GPS doesn't override it. */
+  fromId?: string;
+  toId?: string;
   ferryKind?: FerryKind;
   /** Which "what would you like to do" card was open. */
   intent?: "travel" | "cargo" | null;
@@ -22,13 +22,17 @@ export function loadPrefs(): Prefs {
   if (typeof localStorage === "undefined") return {};
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as Prefs;
+    if (raw) {
+      const p = JSON.parse(raw) as Prefs;
+      // Island ids were numbers before islands came from the API; drop those.
+      if (typeof p.fromId !== "string") delete p.fromId;
+      if (typeof p.toId !== "string") delete p.toId;
+      return p;
+    }
     // Carry over the keys used before prefs were grouped.
     const p: Prefs = {};
     const lang = localStorage.getItem(OLD.lang);
     if (lang === "en" || lang === "dv") p.lang = lang;
-    const to = Number(localStorage.getItem(OLD.to));
-    if (to) p.toId = to;
     localStorage.removeItem(OLD.lang);
     localStorage.removeItem(OLD.to);
     if (Object.keys(p).length) localStorage.setItem(KEY, JSON.stringify(p));
