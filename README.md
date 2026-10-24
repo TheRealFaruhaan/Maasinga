@@ -8,6 +8,7 @@ This repo has two parts:
 | Folder | What it is | Details |
 |---|---|---|
 | `backend/` | Data pipeline, PostgreSQL database, the Maasinga API (FastAPI) and its own dashboard | [backend/README.md](backend/README.md), [backend/docs/SETUP.md](backend/docs/SETUP.md) |
+| `weather/` | The team's weather collector and its data export (ERA5, NASA IMERG, live weather) | [weather/README.md](weather/README.md) |
 | `web/` | The public trip planner (mobile-first, English and Dhivehi) and the **policy dashboard** at `/policy`, behind the API's login | this file, [web/API_GAPS.md](web/API_GAPS.md) |
 
 The final database is committed as a dump: [`backend/data/db/maasinga_db_2026-10-24.sql.gz`](backend/data/db/maasinga_db_2026-10-24.sql.gz).
@@ -62,7 +63,7 @@ The team reviewed the output; every number in the apps comes from the pipeline s
 | What | Address |
 |---|---|
 | Public trip planner (open it on a phone) | https://maasinga-web.dev.faruhaan.com |
-| Policy dashboard (log in with the default login below) | https://maasinga-web.dev.faruhaan.com/policy |
+| Policy dashboard (login given in the submission form) | https://maasinga-web.dev.faruhaan.com/policy |
 | API and its interactive docs | https://maasinga-api.devoup.com/docs |
 
 ## How it fits together
@@ -79,10 +80,10 @@ PostgreSQL  ──  Maasinga API (FastAPI, :8000)  ──┬──  web/  public
 
 | Username | Password | Role |
 |---|---|---|
-| `admin` | `YOUR_ADMIN_PASSWORD` | `admin` (sees the policy dashboard at `/policy` and can manage users) |
+| `admin` | given to the judges in the submission form (not stored in this repo) | `admin` (sees the policy dashboard at `/policy` and can manage users) |
 
-The dump has **no users in it** (`auth.users` is empty), so step 2 below creates this login. Change the
-password on any server other people can reach (`python users.py add admin --role admin` sets a new one).
+The dump has **no users in it** (`auth.users` is empty), so step 2 below creates this login: choose your own
+password where the commands say `YOUR_ADMIN_PASSWORD`.
 More logins: `python users.py add <name>` (role `policy`), `python users.py list`, `python users.py remove <name>`.
 
 ## Run the full suite
@@ -184,7 +185,7 @@ npm start -- -H 127.0.0.1 -p 3001
 
 Open:
 - http://localhost:3001: the public app. It asks for your location (or pick an island), then "What would you like to find?"
-- http://localhost:3001/policy: the policy dashboard. Log in as `admin` / `YOUR_ADMIN_PASSWORD`.
+- http://localhost:3001/policy: the policy dashboard. Log in as `admin` with the password you set in step 2.
 
 ### 4. Backend dashboard (optional)
 
@@ -202,7 +203,7 @@ The development server runs everything as Crundi services:
 | API | hosted separately | | https://maasinga-api.devoup.com |
 
 - Changes show up on the dev address at once. The public address picks them up when `maasinga-web-prod` restarts (it rebuilds, about 30 seconds).
-- The data collectors (`collector/` for the Maldives Ports queue and `weather/` for ERA5, IMERG and live weather) run on that server as the `port-collector` and `weather-live` services. They aren't part of this repo; the backend uses its committed weather files without them.
+- The weather collector (`weather/`: ERA5, IMERG and live weather; how it works in [weather/README.md](weather/README.md)) runs on that server as the `weather-live` service. Its export in `weather/export` is the team's self-collected weather data the backend uses.
 
 ## Troubleshooting
 

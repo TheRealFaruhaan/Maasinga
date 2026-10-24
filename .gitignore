@@ -5,11 +5,15 @@ crundi_attachments/
 .claude/settings.local.json
 __pycache__/
 
-# The repo holds the backend and the web app only. These live on this machine
-# but aren't part of it: data collectors (the port-collector and weather-live
-# services run from them), the index work, and downloaded datasets.
+# The weather collector is in the repo (its scripts and export are the team's
+# self-collected weather data); its raw database and tools are not.
+weather/data/
+weather/.venv/
+weather/.tools/
+
+# These live on this machine but aren't part of the repo: the port-queue
+# collector (not used by the apps), the index work, and downloaded datasets.
 collector/
-weather/
 indexes/
 maldives-datathon-2026-datasets-main/
 .crundi/
